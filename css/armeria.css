@@ -17,4 +17,3 @@
 .armory-source{margin-top:28px;font-size:.8rem}
 @media(max-width:900px){.armory-layout{grid-template-columns:1fr}.armory-summary{position:static}.armory-portrait-frame{height:260px;max-width:300px;margin-inline:auto}}
 @media(max-width:600px){.armory-equipment{grid-template-columns:1fr}.armory-selector label{flex-basis:100%}.armory-selector select{width:100%}.armory-item{padding:16px}}
-.armory-members{margin-bottom:28px}.armory-member-list{display:flex;flex-wrap:wrap;gap:6px}.armory-members p{font-size:.85rem}
