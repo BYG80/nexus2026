@@ -112,6 +112,20 @@ Antes de guardar se comprueban identidad, Horda, NexusForever e imagen de cuerpo
 
 El reconocimiento se mantiene hasta que lo cambies o pulses **Retirar reconocimiento**. No se elige otro jugador automáticamente al cambiar la semana. Si no hay selección, la sección permanece oculta; si el perfil deja de ser un miembro verificado en la web, también se oculta. No se necesita una nueva tabla ni migración: se usa `nexus_settings`.
 
+## Historial de logros y hazañas de miembros
+
+En **Admin → Reconocimientos** selecciona el personaje de un miembro registrado, escribe el título y el detalle, elige un icono y una fecha de concesión. Estos reconocimientos son propios de NEXUS; no modifican los logros del juego ni conceden RSP.
+
+Se muestran en una tabla en **Mi panel** y en el perfil público accesible desde **Miembros → Ver perfil y logros**. El historial pertenece a la cuenta del miembro y muestra a qué personaje se otorgó cada hazaña, por lo que conserva el nombre original si se renombra o elimina el personaje. No se conceden reconocimientos a cuentas no verificadas.
+
+Publicar un **Jugador de la semana** guarda automáticamente su hazaña. Editar al mismo personaje en la misma semana actualiza ese reconocimiento sin duplicarlo; en otra semana se añade otro registro. Cambiar el jugador destacado o retirar la sección de portada no elimina el historial.
+
+Al abrir la nueva pantalla de Admin, se importa el jugador destacado que esté guardado actualmente, si aún no constaba en el historial. Las selecciones antiguas que se reemplazaron antes de existir esta función no se pueden reconstruir automáticamente: pueden añadirse manualmente.
+
+Desde Admin puedes **Retirar** o **Reactivar** reconocimientos sin borrar el registro administrativo. Los retirados no aparecen ni en el perfil público ni en Mi panel. Retirar un premio del historial no retira por sí solo el destacado de la portada; eso se gestiona en Jugador de la semana. Guardar de nuevo el destacado de esa semana vuelve a otorgar su reconocimiento.
+
+La tabla `member_awards` se crea desde Admin si MySQL permite CREATE. Si no, aplica una vez `MIGRACION_RECONOCIMIENTOS.sql`. No es necesario modificar los personajes ni importar de nuevo la base completa. El perfil de miembro no muestra identificadores de Discord ni datos de solicitudes privadas.
+
 ## Validación y límites
 
 Las pruebas de integración usan una base MariaDB local de pruebas y respuestas simuladas de Discord/OpenAI: no publican mensajes reales. Se comprueban creación/reintento de eventos, independencia del aviso de canal, imágenes sin duplicados vinculados, cuotas, errores HTTP, redirecciones, extracción de equipo y respuestas de IA. `tests/regression.php` exige una base terminada en `_test`.

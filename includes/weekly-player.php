@@ -1,16 +1,11 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/armory.php';
+require_once __DIR__ . '/member-awards.php';
 
 function nexus_weekly_icons(): array
 {
-    return [
-        'trophy' => ['label' => 'Trofeo', 'symbol' => '🏆'],
-        'swords' => ['label' => 'Combate', 'symbol' => '⚔️'],
-        'shield' => ['label' => 'Protección', 'symbol' => '🛡️'],
-        'flame' => ['label' => 'Proeza', 'symbol' => '🔥'],
-        'star' => ['label' => 'Estrella', 'symbol' => '⭐'],
-    ];
+    return nexus_award_icons();
 }
 
 /** La portada usa la imagen verificada al guardar: no consulta Blizzard en cada visita. */
@@ -106,8 +101,19 @@ function nexus_weekly_save(PDO $pdo, string $name, string $feat, string $descrip
         'icon' => $icon,
         'selected_at' => gmdate('c'),
     ];
-    $stmt = $pdo->prepare('INSERT INTO nexus_settings (setting_key, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)');
-    $stmt->execute(['player_of_week', json_encode($player, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
+    nexus_awards_schema($pdo);
+    nexus_awards_import_current($pdo);
+    $ownTransaction=!$pdo->inTransaction();
+    if($ownTransaction)$pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare('INSERT INTO nexus_settings (setting_key, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)');
+        $stmt->execute(['player_of_week', json_encode($player, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
+        nexus_award_weekly($pdo,$player);
+        if($ownTransaction)$pdo->commit();
+    } catch(Throwable $error) {
+        if($ownTransaction&&$pdo->inTransaction())$pdo->rollBack();
+        throw $error;
+    }
     return $player;
 }
 

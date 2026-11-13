@@ -48,6 +48,8 @@ expect(str_ends_with((string)$pdo->query('SELECT DATABASE()')->fetchColumn(),'_t
 $pdo->exec(file_get_contents(__DIR__.'/../database.sql'));nexus_migrate_schema($pdo);nexus_media_discord_schema($pdo);
 $pdo->exec(file_get_contents(__DIR__.'/../MIGRACION_IA_DISCORD_ARMERIA.sql'));
 $memberIds=['900000000000000001','900000000000000002'];
+nexus_awards_schema($pdo);
+$pdo->prepare('DELETE FROM member_awards WHERE member_discord_id IN (?,?)')->execute($memberIds);
 foreach($memberIds as $id){$pdo->prepare('DELETE FROM member_profiles WHERE discord_id=?')->execute([$id]);$pdo->prepare('DELETE FROM members WHERE discord_id=?')->execute([$id]);}
 $pdo->prepare('INSERT INTO members (discord_id,discord_username,is_member) VALUES (?,?,1),(?,?,0)')->execute([$memberIds[0],'Miembro verificado',$memberIds[1],'Cuenta no verificada']);
 $pdo->prepare("INSERT INTO member_profiles (discord_id,faction,name) VALUES (?,'horda',?),(?,'horda',?)")->execute([$memberIds[0],'Melkir',$memberIds[1],'Ajeno Nexus']);
@@ -72,11 +74,30 @@ expect(nexus_weekly_player($pdo)['feat']==='Ayuda a sus compañeros','No perder 
 $unexpectedLookup=false;
 fails(function()use($pdo,&$unexpectedLookup,$weeklyFixture){nexus_weekly_save($pdo,'Ajeno Nexus','','','trophy',function()use(&$unexpectedLookup,$weeklyFixture){$unexpectedLookup=true;return $weeklyFixture;});},'No destacar cuentas no verificadas');
 expect(!$unexpectedLookup,'No consultar Blizzard para un personaje no autorizado');
+// Historial persistente: concesión semanal automática, edición sin duplicados y premios manuales.
+$awards=nexus_member_awards($pdo,$memberIds[0],'horda');
+expect(count($awards)===1&&$awards[0]['source']==='weekly','Guardar automáticamente el reconocimiento semanal sin duplicados');
+$nextWeek=[...$selected,'selected_at'=>(new DateTimeImmutable($selected['selected_at']))->modify('+7 days')->format('c')];
+nexus_award_weekly($pdo,$nextWeek);
+expect(count(nexus_member_awards($pdo,$memberIds[0],'horda'))===2,'Conservar los reconocimientos de semanas diferentes');
+$date=new DateTimeImmutable('yesterday 12:00',new DateTimeZone('Europe/Madrid'));
+$manualKey='manual:test-'.$mine[0]['profile_id'];
+$manual=nexus_award_record($pdo,$mine[0]['profile_id'],'Ayuda ejemplar','<script>Texto seguro</script>','star','manual',$manualKey,$date);
+expect(nexus_award_record($pdo,$mine[0]['profile_id'],'Ayuda ejemplar','<script>Texto seguro</script>','star','manual',$manualKey,$date)===$manual,'Un envío repetido no duplica el premio manual');
+expect(count(nexus_member_awards($pdo,$memberIds[0],'horda'))===3,'Acumular premios manuales y semanales en el perfil');
+fails(fn()=>nexus_award_record($pdo,$mine[0]['profile_id'],'Otro premio','','star','manual',$manualKey,$date),'No reutilizar un formulario para cambiar el destinatario o el premio');
+nexus_award_revoke($pdo,$manual);expect(count(nexus_member_awards($pdo,$memberIds[0],'horda'))===2,'Ocultar un premio retirado sin borrar el historial');
+nexus_award_revoke($pdo,$manual,true);expect(count(nexus_member_awards($pdo,$memberIds[0],'horda'))===3,'Reactivar un reconocimiento retirado');
+$memberAwards=nexus_member_awards($pdo,$memberIds[0],'horda');ob_start();include __DIR__.'/../includes/member-awards-table.php';$html=ob_get_clean();
+expect(!str_contains($html,'<script>')&&str_contains($html,'&lt;script&gt;'),'Escapar la descripción del premio en su tabla pública');
+$pdo->prepare('UPDATE member_profiles SET name=? WHERE id=?')->execute(['Nombre cambiado',$mine[0]['profile_id']]);
+expect(in_array('Prueba_Destacada',array_column(nexus_member_awards($pdo,$memberIds[0],'horda'),'character_name'),true),'Mantener el nombre histórico cuando cambia el personaje');
 $pdo->prepare('UPDATE members SET is_member=0 WHERE discord_id=?')->execute([$memberIds[0]]);
 expect(!array_filter(nexus_armory_members($pdo),fn($profile)=>$profile['profile_id']===$mine[0]['profile_id']),'Retirar de la armería al dejar de ser miembro verificado');
 expect(nexus_weekly_player($pdo)===null,'Ocultar el reconocimiento si pierde su condición de miembro');
 nexus_weekly_clear($pdo);
 expect(nexus_weekly_player($pdo)===null,'Retirar el reconocimiento sin borrar personajes');
+expect(count(nexus_member_awards($pdo,$memberIds[0],'horda'))===3,'Retirar el destacado no borra sus logros');
 foreach($memberIds as $id){$pdo->prepare('DELETE FROM member_profiles WHERE discord_id=?')->execute([$id]);$pdo->prepare('DELETE FROM members WHERE discord_id=?')->execute([$id]);}
 $pdo->exec('DELETE FROM event_attendees');$pdo->exec('DELETE FROM events');$pdo->exec('DELETE FROM discord_media_publications');$pdo->exec('DELETE FROM media');
 $pdo->prepare('INSERT INTO events (event_date,event_time,title,type,description) VALUES (?,?,?,?,?)')->execute([$future,'22:00','Raid de prueba','Raid','Solo prueba']);$eventId=(int)$pdo->lastInsertId();
@@ -130,5 +151,6 @@ $users=discord_list_event_users('12345','67890',function($method,$url)use(&$page
 expect(count($users)===101&&$pageCalls===2,'Importar más de cien interesados');
 // Eliminar una imagen local de la armería o un error de parser no debe fabricar objetos.
 fails(fn()=>nexus_armory_parse('<html>Sin perfil</html>','prueba-nexus'),'Fallo explícito si Blizzard cambia su página');
+$pdo->prepare('DELETE FROM member_awards WHERE member_discord_id IN (?,?)')->execute($memberIds);
 $pdo->exec('DELETE FROM event_attendees');$pdo->exec('DELETE FROM events');$pdo->exec('DELETE FROM discord_media_publications');$pdo->exec('DELETE FROM media');
 echo $count." comprobaciones correctas. Sin peticiones reales a OpenAI ni Discord.\n";

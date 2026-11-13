@@ -27,8 +27,8 @@ Options -Indexes
     RewriteRule ^index\.php$ / [R=301,L]
     RewriteCond %{REQUEST_METHOD} ^(?:GET|HEAD)$
     RewriteCond %{THE_REQUEST} \s/+[^?\ ]+\.php(?:[?\s]) [NC]
-    RewriteRule ^(historia|roster|armeria|calendario|rsp|reclutamiento|logros|galeria|noticias|normas|mazmorras|members|panel|hermandad-wow-forever|world-of-warcraft-forever|horda-wow-forever|alianza-wow-forever|aviso-legal|privacidad|politica-cookies)\.php$ /$1 [R=301,L]
-    RewriteRule ^(historia|roster|armeria|calendario|rsp|reclutamiento|logros|galeria|noticias|normas|mazmorras|members|panel|hermandad-wow-forever|world-of-warcraft-forever|horda-wow-forever|alianza-wow-forever|aviso-legal|privacidad|politica-cookies)/$ /$1 [R=301,L]
+    RewriteRule ^(historia|roster|perfil|armeria|calendario|rsp|reclutamiento|logros|galeria|noticias|normas|mazmorras|members|panel|hermandad-wow-forever|world-of-warcraft-forever|horda-wow-forever|alianza-wow-forever|aviso-legal|privacidad|politica-cookies)\.php$ /$1 [R=301,L]
+    RewriteRule ^(historia|roster|perfil|armeria|calendario|rsp|reclutamiento|logros|galeria|noticias|normas|mazmorras|members|panel|hermandad-wow-forever|world-of-warcraft-forever|horda-wow-forever|alianza-wow-forever|aviso-legal|privacidad|politica-cookies)/$ /$1 [R=301,L]
 
     # Mantener las URLs públicas sin extensión que usa la navegación.
     RewriteCond %{REQUEST_FILENAME} !-d

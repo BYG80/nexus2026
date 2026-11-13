@@ -5,6 +5,7 @@ start_secure_session();
 header('X-Robots-Tag: noindex, follow');
 
 require_once __DIR__.'/config/bootstrap.php';
+require_once __DIR__.'/includes/member-awards.php';
 
 
 try {
@@ -273,6 +274,8 @@ try {
     $error = $e->getMessage();
 }
 
+$memberAwards=nexus_member_awards($pdo,$discordId,$faction);
+
 $selectedName=(string)($character['name']??'');
 $professions=array_values(array_filter($professions,fn($p)=>(string)($p['character_name']??'')===$selectedName));
 $primary = array_values(array_filter($professions,fn($p)=>$p['profession_type']==='primary'));
@@ -290,9 +293,12 @@ function member_class_icon(string $class): string { $c=mb_strtolower($class,'UTF
 <link rel="stylesheet" href="./css/global.css">
 <link rel="stylesheet" href="./css/panel.css?v=20261011c">
 <link rel="icon" href="./favicon.ico">
+<link rel="stylesheet" href="/css/member-awards.css?v=<?=filemtime(__DIR__ . '/css/member-awards.css')?>">
 </head><body>
 <?php include __DIR__.'/includes/public-nav.php'; ?>
-<main><section><div class="container">
+<main>
+<section class="member-awards-section" aria-labelledby="my-awards-title"><div class="container"><h2 id="my-awards-title">Mis logros y hazañas de NEXUS</h2><p class="section-lead">Tus reconocimientos de la hermandad, incluidos los de Jugador de la semana.</p><?php include __DIR__.'/includes/member-awards-table.php'; ?></div></section>
+<section><div class="container">
 <div class="page-hero"><div class="eyebrow">NEXUS · PANEL DE MIEMBRO</div><h1>Mi panel</h1><p>Gestiona tus personajes, profesiones y pedidos. Puedes registrar varios personajes de tu cuenta de Discord.</p></div>
 <?php if($msg): ?><div class="flash"><?=e($msg)?></div><?php endif; ?><?php if($error): ?><div class="flash" style="border-color:#a33"><?=e($error)?></div><?php endif; ?>
 <div class="card panel-card">

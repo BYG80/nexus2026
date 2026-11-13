@@ -175,6 +175,7 @@ function admin_header(
                     <a class="<?= $active === 'chat' ? 'active' : '' ?>" href="/Admin/chat.php">Asistente IA</a>
                     <a class="<?= $active === 'armory' ? 'active' : '' ?>" href="/Admin/armeria.php">Armería</a>
                     <a class="<?= $active === 'weekly-player' ? 'active' : '' ?>" href="/Admin/jugador-semana.php">Jugador de la semana</a>
+                    <a class="<?= $active === 'awards' ? 'active' : '' ?>" href="/Admin/reconocimientos.php">Reconocimientos</a>
                     <a class="<?= $active === 'integrations' ? 'active' : '' ?>" href="/Admin/integraciones.php">Integraciones Discord</a>
                     <a class="<?= $active === 'faction' ? 'active' : '' ?>" href="/Admin/faccion.php">
                         Facción

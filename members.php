@@ -130,6 +130,7 @@ ksort($classes);
             <?php foreach($profs as $pr): ?><span class="profession-pill <?=e((string)$pr['profession_type'])?>"><?=e($pr['profession_name'])?><?php if($pr['skill_level']!==null && $pr['skill_level']!==''): ?> <b><?=e((string)$pr['skill_level'])?></b><?php endif; ?></span><?php endforeach; ?>
         </div><?php else: ?><p class="muted">Sin profesiones registradas.</p><?php endif; ?>
     </div>
+    <p><a class="btn ghost" href="/perfil?personaje=<?=(int)$r['id']?>#reconocimientos">Ver perfil y logros →</a></p>
 </article>
 <?php endforeach; ?>
 </div>

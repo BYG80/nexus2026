@@ -54,6 +54,7 @@ function nexus_seo_pages(): array
         '/privacidad' => ['title' => 'Política de privacidad | NEXUS', 'label' => 'Privacidad', 'description' => 'Información sobre los datos de cuenta, formularios y servicios externos utilizados en la web de NEXUS y cómo ejercer tus derechos de privacidad.'],
         '/politica-cookies' => ['title' => 'Cookies y preferencias de privacidad | NEXUS', 'label' => 'Cookies', 'description' => 'Conoce el almacenamiento de preferencias de NEXUS, el consentimiento para vídeos externos y cómo modificar tu elección de privacidad.'],
         '/armeria' => ['title' => 'Armería Horda y equipo de miembros | NEXUS WoW Forever', 'label' => 'Armería', 'description' => 'Consulta el equipo, los objetos y los encantamientos de los miembros de NEXUS en WoW Forever Europa, a partir de sus perfiles públicos de Blizzard.'],
+        '/perfil' => ['title' => 'Perfil y reconocimientos de miembro | NEXUS', 'label' => 'Perfil de miembro', 'description' => 'Historial de logros y hazañas otorgados por la hermandad NEXUS a sus miembros.', 'index' => false],
         '/members' => ['title' => 'Miembros y profesiones | NEXUS', 'label' => 'Miembros', 'description' => 'Información de miembros y profesiones de la comunidad NEXUS.', 'index' => false],
         '/panel' => ['title' => 'Mi panel de miembro | NEXUS', 'label' => 'Mi panel', 'description' => 'Gestiona tu cuenta y tus personajes en NEXUS.', 'index' => false],
     ];
