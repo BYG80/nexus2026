@@ -63,6 +63,8 @@ expect(nexus_weekly_player($pdo)['slug']==='prueba-destacada','Publicar reconoci
 expect(nexus_weekly_player($pdo)['feat']==='Ayuda a sus compañeros','Conservar la hazaña del administrador');
 $pdo->prepare('UPDATE member_profiles SET name=? WHERE discord_id=?')->execute(['Prueba_Destacada',$memberIds[0]]);
 expect(nexus_weekly_save($pdo,'Prueba Destacada','Ayuda a sus compañeros','Una hazaña escrita por el administrador.','trophy',fn()=>$weeklyFixture)['profile_id']===$mine[0]['profile_id'],'Reconocer nombres registrados con guion bajo escribiendo nombre y apellido');
+expect(nexus_weekly_save_member($pdo,$mine[0]['profile_id'],'Ayuda a sus compañeros','','trophy',fn()=>$weeklyFixture)['profile_id']===$mine[0]['profile_id'],'Seleccionar un miembro por ID desde el desplegable');
+fails(fn()=>nexus_weekly_save_member($pdo,2147483647,'','','trophy',fn()=>$weeklyFixture),'Rechazar un ID ajeno al desplegable de miembros');
 fails(fn()=>nexus_weekly_save($pdo,'Prueba Destacada','Otro título','','invalid',fn()=>$weeklyFixture),'Rechazar iconos desconocidos');
 fails(fn()=>nexus_weekly_save($pdo,'Prueba Destacada','Otro título','','trophy',fn()=>[...$weeklyFixture,'portrait'=>'']),'No publicar un personaje sin retrato');
 fails(fn()=>nexus_weekly_save($pdo,'Prueba Destacada','Otro título','','trophy',fn()=>[...$weeklyFixture,'guild_slug'=>'otra-guild']),'Comprobar la hermandad del jugador destacado');

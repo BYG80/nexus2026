@@ -5,7 +5,8 @@ require_admin_role('admin');
 require_once __DIR__ . '/../includes/weekly-player.php';
 $pdo = db();
 $current = nexus_weekly_player($pdo);
-$values = ['name' => $current['name'] ?? '', 'feat' => $current['feat'] ?? '', 'description' => $current['description'] ?? '', 'icon' => $current['icon'] ?? 'trophy'];
+$candidates = nexus_weekly_candidates($pdo);
+$values = ['profile_id' => (string)($current['profile_id'] ?? ''), 'feat' => $current['feat'] ?? '', 'description' => $current['description'] ?? '', 'icon' => $current['icon'] ?? 'trophy'];
 $error = '';
 $message = (string)($_SESSION['weekly_player_flash'] ?? '');
 unset($_SESSION['weekly_player_flash']);
@@ -20,7 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!is_string($_POST[$key] ?? null)) throw new InvalidArgumentException('Revisa los campos del formulario.');
                 $values[$key] = trim($_POST[$key]);
             }
-            nexus_weekly_save($pdo, $values['name'], $values['feat'], $values['description'], $values['icon']);
+            if (!preg_match('/^[1-9][0-9]{0,9}$/', $values['profile_id'])) throw new InvalidArgumentException('Selecciona un miembro de la hermandad.');
+            nexus_weekly_save_member($pdo, (int)$values['profile_id'], $values['feat'], $values['description'], $values['icon']);
             $_SESSION['weekly_player_flash'] = 'Jugador de la semana publicado debajo del carrusel.';
         }
         header('Location: /Admin/jugador-semana.php');
@@ -35,7 +37,7 @@ admin_header('Jugador de la semana', 'weekly-player');
 ?>
 <div class="eyebrow">NEXUS · RECONOCIMIENTOS</div>
 <h1>Jugador de la semana</h1>
-<p>Elige a un miembro escribiendo su nombre y apellido de WoW Forever. En el inicio aparecerán solo la imagen del personaje y la hazaña que escribas.</p>
+<p>Selecciona el personaje de un miembro de la hermandad en el desplegable. En el inicio aparecerán solo la imagen del personaje y la hazaña que escribas.</p>
 <?php if ($message): ?><div class="flash"><?=e($message)?></div><?php endif; ?>
 <?php if ($error): ?><div class="error-box"><?=e($error)?></div><?php endif; ?>
 <div class="admin-grid">
@@ -44,7 +46,15 @@ admin_header('Jugador de la semana', 'weekly-player');
         <form class="admin-form" method="post">
             <input type="hidden" name="csrf" value="<?=e(csrf_token())?>">
             <input type="hidden" name="action" value="save">
-            <label>Nombre y apellido del personaje<input name="name" maxlength="120" value="<?=e($values['name'])?>" placeholder="Ej.: Melkir Vossgrave" autocomplete="off" required></label>
+            <label>Miembro de la hermandad
+                <select name="profile_id" required>
+                    <option value="">Selecciona un personaje…</option>
+                    <?php foreach ($candidates as $id => $candidate): $available = empty($candidate['unavailable']) && $candidate['slug'] !== ''; ?>
+                        <option value="<?=(int)$id?>" <?=$values['profile_id'] === (string)$id ? 'selected' : ''?> <?=$available ? '' : 'disabled'?>><?=e($candidate['display_name'])?><?=$available ? '' : (!empty($candidate['unavailable']) ? ' — No disponible' : ' — Pendiente de vincular en Armería')?></option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+            <p class="small">Si falta el nombre completo de un personaje, puedes vincularlo desde <a href="/Admin/armeria.php">Admin → Armería</a>.</p>
             <label>Hazaña o título del reconocimiento<input name="feat" maxlength="120" value="<?=e($values['feat'])?>" placeholder="Ej.: Siempre al rescate de sus compañeros"></label>
             <label>Detalle de la hazaña (opcional)<textarea name="description" rows="4" maxlength="700" placeholder="Cuenta qué ha hecho para merecer este reconocimiento."><?=e($values['description'])?></textarea></label>
             <label>Icono<select name="icon"><?php foreach (nexus_weekly_icons() as $key => $icon): ?><option value="<?=e($key)?>" <?=$values['icon'] === $key ? 'selected' : ''?>><?=e($icon['symbol'] . ' ' . $icon['label'])?></option><?php endforeach; ?></select></label>

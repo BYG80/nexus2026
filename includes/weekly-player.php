@@ -36,7 +36,32 @@ function nexus_weekly_player(?PDO $pdo = null): ?array
     }
 }
 
-/** Asociar el nombre introducido con un miembro de la web sin pedir otro selector al administrador. */
+/** Opciones por ID: dos personajes con el mismo nombre no se confunden. */
+function nexus_weekly_candidates(PDO $pdo): array
+{
+    $current = nexus_weekly_player($pdo);
+    $options = [];
+    foreach (nexus_armory_members($pdo) as $member) {
+        $slug = $member['slug'];
+        if ($slug === '' && empty($member['unavailable'])) {
+            try { $slug = nexus_armory_slug(str_replace('_', ' ', $member['display_name'])); }
+            catch (InvalidArgumentException $ignored) {}
+            if ($slug === '' && (int)($current['profile_id'] ?? 0) === $member['profile_id']) $slug = $current['slug'];
+        }
+        $options[$member['profile_id']] = [...$member, 'slug' => $slug];
+    }
+    return $options;
+}
+
+function nexus_weekly_save_member(PDO $pdo, int $profileId, string $feat, string $description, string $icon, ?callable $loadProfile = null): array
+{
+    $member = nexus_weekly_candidates($pdo)[$profileId] ?? null;
+    if (!$member || !empty($member['unavailable'])) throw new InvalidArgumentException('Selecciona un personaje de un miembro verificado de la hermandad.');
+    if ($member['slug'] === '') throw new InvalidArgumentException('Este personaje necesita su nombre completo. Vincúlalo desde Admin → Armería antes de seleccionarlo.');
+    return nexus_weekly_save($pdo, $member['slug'], $feat, $description, $icon, $loadProfile, $profileId);
+}
+
+/** Resolver nombres de forma compatible con los reconocimientos guardados anteriormente. */
 function nexus_weekly_member(PDO $pdo, string $slug): array
 {
     $exact = [];
@@ -54,7 +79,7 @@ function nexus_weekly_member(PDO $pdo, string $slug): array
     return $matches[0];
 }
 
-function nexus_weekly_save(PDO $pdo, string $name, string $feat, string $description, string $icon, ?callable $loadProfile = null): array
+function nexus_weekly_save(PDO $pdo, string $name, string $feat, string $description, string $icon, ?callable $loadProfile = null, ?int $profileId = null): array
 {
     foreach ([$name, $feat, $description] as $text) if (!mb_check_encoding($text, 'UTF-8')) throw new InvalidArgumentException('El texto introducido no es válido.');
     $slug = nexus_armory_slug($name);
@@ -62,7 +87,8 @@ function nexus_weekly_save(PDO $pdo, string $name, string $feat, string $descrip
     $description = trim($description);
     if (mb_strlen($feat) > 120 || mb_strlen($description) > 700) throw new InvalidArgumentException('La hazaña admite hasta 120 caracteres y el detalle hasta 700.');
     if (!isset(nexus_weekly_icons()[$icon])) throw new InvalidArgumentException('Selecciona uno de los iconos disponibles.');
-    $member = nexus_weekly_member($pdo, $slug);
+    $member = $profileId === null ? nexus_weekly_member($pdo, $slug) : (nexus_weekly_candidates($pdo)[$profileId] ?? null);
+    if (!$member || !empty($member['unavailable']) || ($profileId !== null && $member['slug'] !== $slug)) throw new InvalidArgumentException('El personaje seleccionado ya no está disponible. Recarga la página.');
     $profile = ($loadProfile ?? 'nexus_armory_profile')($slug);
     if (($profile['slug'] ?? '') !== $slug || ($profile['guild_slug'] ?? '') !== mb_strtolower((string)app_config('armory_guild_slug', 'nexusforever')) || ($profile['faction'] ?? '') !== 'Horda') throw new InvalidArgumentException('El perfil oficial debe confirmar la identidad, la Horda y la hermandad NexusForever.');
     if (!empty($profile['stale'])) throw new RuntimeException('No se ha podido actualizar el perfil de Blizzard. Reintenta más tarde; el jugador anterior sigue publicado.');

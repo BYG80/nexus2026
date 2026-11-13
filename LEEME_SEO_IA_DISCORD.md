@@ -104,9 +104,9 @@ Hay caché de diez minutos y un máximo de una comprobación cada dos minutos po
 
 ## Jugador de la semana
 
-En **Admin → Jugador de la semana** escribe el nombre y apellido de un personaje, añade la hazaña o título que tú decidas, un detalle opcional y elige el icono. Al publicar, aparece una sección inmediatamente debajo del carrusel del inicio, con la imagen del personaje y su reconocimiento, sin objetos ni estadísticas de la armería.
+En **Admin → Jugador de la semana** selecciona el personaje desde el desplegable de miembros registrados y verificados, añade la hazaña o título que tú decidas, un detalle opcional y elige el icono. Al publicar, aparece una sección inmediatamente debajo del carrusel del inicio, con la imagen del personaje y su reconocimiento, sin objetos ni estadísticas de la armería.
 
-El nombre debe corresponder a un miembro verificado de nuestra web; se admiten los nombres completos, vinculaciones de Admin → Armería y nombres registrados con guion bajo. Si solo existe el nombre de pila, se acepta únicamente cuando identifica un solo perfil registrado, y se comprueba además el nombre completo en Blizzard. Las identidades ambiguas deben completarse en Mi panel o Admin → Armería.
+Las opciones proceden de los personajes de miembros verificados de nuestra web, sin importar el roster completo de Blizzard. La selección se guarda por ID para distinguir personajes con el mismo nombre. Los perfiles sin nombre completo aparecen deshabilitados hasta vincularlos desde Admin → Armería; los nombres completos registrados con guion bajo también se reconocen. Se conserva la selección actual al actualizar esta función.
 
 Antes de guardar se comprueban identidad, Horda, NexusForever e imagen de cuerpo completo en la armería pública de WoW Forever EU. Si falla la consulta, el reconocimiento anterior se conserva. La portada usa esa imagen verificada sin consultar Blizzard en cada visita. Puedes volver a guardar para actualizarla.
 
