@@ -1,0 +1,2 @@
+# Datos internos: las API PHP acceden a estos archivos desde el servidor.
+Require all denied

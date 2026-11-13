@@ -1,0 +1,55 @@
+body.admin-body{background:#0a0b0e}.admin-shell{min-height:100vh}.admin-top{border-bottom:1px solid rgba(216,173,85,.2);background:#111319}.admin-top .inner{max-width:1200px;margin:auto;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:15px}.admin-brand{font-family:Cinzel,serif;color:#d8ad55;font-weight:800;text-decoration:none;letter-spacing:.08em}.admin-nav{max-width:1200px;margin:auto;padding:12px 22px;display:flex;gap:10px;flex-wrap:wrap}.admin-nav a{color:#ddd;text-decoration:none;padding:8px 12px;border:1px solid rgba(255,255,255,.1);border-radius:6px}.admin-nav a:hover,.admin-nav a.active{border-color:#d8ad55;color:#d8ad55}.admin-main{max-width:1200px;margin:auto;padding:32px 22px}.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}.admin-card{background:#12151b;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:22px}.admin-card h2,.admin-card h3{margin-top:0}.admin-table{width:100%;border-collapse:collapse}.admin-table th,.admin-table td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.admin-form{display:grid;gap:12px}.admin-form label{display:grid;gap:6px}.admin-form input,.admin-form select,.admin-form textarea{width:100%;box-sizing:border-box;background:#0c0e12;color:#eee;border:1px solid #343944;border-radius:6px;padding:10px}.admin-form textarea{min-height:110px}.admin-actions{display:flex;gap:8px;flex-wrap:wrap}.danger{background:#7e2525!important}.small{font-size:.85rem}.login-admin{max-width:470px;margin:80px auto}.flash{padding:12px 14px;border-radius:6px;background:rgba(216,173,85,.12);border:1px solid rgba(216,173,85,.25);margin-bottom:18px}.error-box{padding:12px;background:rgba(180,50,50,.12);border:1px solid rgba(220,90,90,.25);margin-bottom:18px;color:#ffb0b0}.stat-big{font-size:2rem;color:#d8ad55;font-weight:800}.admin-media-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}.media-admin-item{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:start;background:#0d1015;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px}.media-admin-thumb{height:90px;position:relative;overflow:hidden;border-radius:6px;background:#080a0d}.media-admin-thumb img{width:100%;height:100%;object-fit:cover}.play-badge{position:absolute;inset:0;display:grid;place-items:center;font-size:2rem;color:#fff;text-shadow:0 2px 8px #000}.media-admin-item form{margin-top:10px}
+
+/* Profesiones: ficha completa */
+.profession-group-form .character-fields{grid-column:1/-1;display:grid;grid-template-columns:2fr 1fr 1fr .7fr 1fr;gap:14px}
+.profession-slots-box{grid-column:1/-1;display:grid;gap:18px;padding:18px;border:1px solid rgba(216,173,85,.18);border-radius:14px;background:rgba(255,255,255,.025)}
+.slot-section{padding:15px;border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(0,0,0,.12)}
+.slot-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:1.05rem;color:#e7c56c}.slot-title small{color:#999;font-size:.75rem}
+.slot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.slot-section:first-child .slot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.profession-slot{display:grid;gap:7px;padding:12px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07)}
+.profession-slot strong{font-size:.85rem;color:#ccc}.profession-slot select,.profession-slot input{width:100%;box-sizing:border-box}
+@media(max-width:1100px){.profession-group-form .character-fields{grid-template-columns:1fr 1fr}.slot-grid,.slot-section:first-child .slot-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.profession-group-form .character-fields,.slot-grid,.slot-section:first-child .slot-grid{grid-template-columns:1fr}}
+
+/* Profesiones registradas encima del formulario */
+.admin-professions-list{margin-bottom:22px}
+.admin-professions-list .profession-summary{display:grid;gap:5px}
+.admin-professions-list .profession-summary-row{display:flex;gap:8px;flex-wrap:wrap}
+.admin-professions-list .profession-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.admin-professions-list .profession-pill strong{color:#d8ad55}
+
+
+/* RSP: tarjetas de personaje y selección de conceptos */
+.rsp-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0 22px}
+.rsp-toolbar form{margin:0}
+.rsp-target-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 10px;border:1px solid rgba(216,173,85,.22);border-radius:10px;background:rgba(216,173,85,.045)}
+.rsp-target-form label{display:flex;align-items:center;gap:8px;color:#ddd;font-size:.9rem}
+.rsp-target-form input,.rsp-inline-target input{width:88px;box-sizing:border-box;background:#0c0e12;color:#fff;border:1px solid #343944;border-radius:6px;padding:9px}
+.rsp-rule-fieldset{border:1px solid rgba(216,173,85,.2);border-radius:12px;padding:14px;margin:4px 0 12px;min-width:0}
+.rsp-rule-fieldset legend{color:#e7c56c;font-weight:700;padding:0 7px}
+.rsp-rule-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
+.rsp-rule-tile{position:relative;display:flex!important;align-items:center;gap:10px;min-height:66px;padding:11px 12px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:rgba(255,255,255,.025);cursor:pointer;transition:border-color .15s,background .15s}
+.rsp-rule-tile:has(input:checked){border-color:#d8ad55;background:rgba(216,173,85,.12);box-shadow:inset 0 0 0 1px rgba(216,173,85,.12)}
+.rsp-rule-tile input{width:19px;height:19px;accent-color:#d8ad55;flex:0 0 auto}
+.rsp-rule-copy{display:grid;gap:4px;min-width:0}.rsp-rule-copy strong{color:#f1e8d5;font-size:.9rem}.rsp-rule-copy small{color:#d8ad55;font-weight:700}
+.rsp-character-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:10px;max-height:490px;overflow:auto;padding:2px;margin:8px 0 14px}
+.rsp-character-card{display:grid!important;grid-template-columns:22px 22px minmax(0,1fr) auto;align-items:center;gap:9px;padding:13px 12px;border:1px solid rgba(255,255,255,.09);border-radius:12px;background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(0,0,0,.14));cursor:pointer;min-width:0;transition:border-color .15s,background .15s}
+.rsp-character-card:hover{border-color:rgba(216,173,85,.5)}.rsp-character-card.is-attended{border-color:rgba(95,170,112,.3)}
+.rsp-character-card>input{width:18px;height:18px;accent-color:#d8ad55;margin:0}
+.rsp-character-mark{display:grid;place-items:center;width:22px;height:28px;color:#d8ad55;font-size:1.2rem}
+.rsp-character-info{display:grid;gap:4px;min-width:0}.rsp-character-info strong{color:#f3ead9;overflow-wrap:anywhere}.rsp-character-info small{color:#aeb4bf;font-size:.76rem;line-height:1.3}
+.rsp-character-balance{display:grid;justify-items:end;gap:2px;padding-left:5px}.rsp-character-balance strong{font-size:1.1rem;color:#e7c56c}.rsp-character-balance small{font-size:.7rem;color:#aeb4bf;text-transform:uppercase;letter-spacing:.08em}
+.rsp-inline-target{display:flex;gap:6px;align-items:center;min-width:190px}.rsp-inline-target input{width:74px}.rsp-inline-target .btn{white-space:nowrap}
+@media(max-width:700px){.rsp-character-grid{grid-template-columns:1fr;max-height:none}.rsp-rule-grid{grid-template-columns:1fr 1fr}.rsp-toolbar,.rsp-target-form{align-items:stretch}.rsp-inline-target{flex-wrap:wrap}}
+@media(max-width:440px){.rsp-rule-grid{grid-template-columns:1fr}.rsp-character-card{grid-template-columns:20px 16px minmax(0,1fr) auto;padding:11px 9px;gap:7px}}
+
+/* RSP · selector de conceptos estructurado */
+.rsp-rule-group{margin:14px 0 18px}
+.rsp-rule-group h3{margin:0 0 9px;color:#e7c56c;font-size:.92rem;letter-spacing:.03em}
+.rsp-rule-summary{display:flex;align-items:center;justify-content:center;gap:7px;margin:12px 0 2px;padding:10px 14px;border:1px solid rgba(216,173,85,.22);border-radius:9px;background:rgba(216,173,85,.055);color:#b9bec7;font-size:.86rem}
+.rsp-rule-summary strong{color:#e7c56c;font-size:.96rem}
+.rsp-rule-summary span{opacity:.5}
+.rsp-rule-tile:has(input:checked) .rsp-rule-copy strong{color:#fff}
+.rsp-rule-tile:has(input:checked) .rsp-rule-tick{opacity:1;transform:scale(1)}
+.rsp-rule-tick{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#d8ad55;color:#111;font-size:.7rem;font-weight:900;opacity:.22;transform:scale(.85);transition:.15s;flex:0 0 18px}
+@media(max-width:700px){.rsp-rule-summary{justify-content:flex-start;flex-wrap:wrap}.rsp-rule-group h3{font-size:.88rem}}

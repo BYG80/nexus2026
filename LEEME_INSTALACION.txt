@@ -1,0 +1,28 @@
+NEXUS RSP v1.5.1 — PANEL ADMIN RSP + ADDON JSON
+
+WEB (PHP)
+1. Haz copia de seguridad de Admin/rsp.php, Admin/rsp_import.php y Admin/rsp_addon_sync.php.
+2. Sube los archivos Admin/ incluidos a la carpeta Admin de tu web.
+3. En Admin > RSP tendrás Descargar saldos JSON y el acceso a Importar movimientos JSON.
+4. Ya no se ofrece exportación CSV para este flujo. El importador acepta que guion y guion bajo sean equivalentes para buscar el personaje.
+
+ADDON
+1. Cierra WoW. Haz copia de Interface/AddOns/NEXUSRSP.
+2. Sustituye la carpeta NEXUSRSP por la incluida en este ZIP.
+3. Entra en el juego, activa el addon y escribe /rsp. Los botones IMPORTAR JSON y EXPORTAR JSON están en la ventana principal. También puedes usar /rsp import o /rsp json.
+
+FLUJO
+- Juego -> web: addon > EXPORTAR JSON > JSON movimientos; guardar texto como .json; Admin > RSP > Importar movimientos JSON del addon.
+- Web -> juego: Admin > RSP > Descargar saldos JSON; abrir el archivo y copiar su contenido; addon > IMPORTAR JSON y pegarlo.
+
+Limitación: WoW no permite a un addon abrir archivos del PC ni guardarlos automáticamente; el texto se copia/pega, pero el formato es siempre JSON. La web es la fuente oficial de saldos. Haz una copia de seguridad antes de importar.
+
+RECUPERACION SEGURA DEL ADMIN
+-----------------------------
+La recuperación ya no usa una clave almacenada en config.php.
+Para habilitarla temporalmente, crea fuera de public_html un archivo llamado:
+.nexus_admin_recovery
+con un secreto aleatorio de al menos 32 caracteres.
+La ruta habitual es: /home/TU_USUARIO/.nexus_admin_recovery
+La herramienta /Admin/recover.php solo acepta ese secreto, la solicitud caduca en 15 minutos y el archivo se elimina automáticamente después de una recuperación correcta.
+No publiques el secreto ni lo incluyas en ZIPs.

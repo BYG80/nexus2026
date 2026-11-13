@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "date": "2026-10-10",
+    "time": "21:00",
+    "title": "Raid de prueba NEXUS",
+    "type": "Raid",
+    "description": "Evento de prueba para comprobar las inscripciones de WoW Forever."
+  },
+  {
+    "id": 2,
+    "date": "2026-10-12",
+    "time": "20:30",
+    "title": "Mazmorra de prueba",
+    "type": "Mazmorra",
+    "description": "Evento de prueba para comprobar raza, clase e inscripción mediante Discord."
+  }
+]

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /Admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /config/
+Disallow: /test-bootstrap.php
+Disallow: /php-test.php
+Disallow: /test/
+
+Sitemap: https://www.nexus-forever.es/sitemap.xml

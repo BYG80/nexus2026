@@ -1,0 +1,23 @@
+<?php
+return [
+    'db_host' => 'localhost',
+    'db_name' => 'TU_BASE_DE_DATOS',
+    'db_user' => 'TU_USUARIO_MYSQL',
+    'db_pass' => 'TU_CONTRASENA_MYSQL',
+    'db_charset' => 'utf8mb4',
+    'app_url' => 'https://www.nexus-forever.es',
+    'app_timezone' => 'Europe/Madrid',
+    'discord_client_id' => 'TU_CLIENT_ID',
+    'discord_client_secret' => 'TU_CLIENT_SECRET',
+    'discord_redirect_uri' => 'https://www.nexus-forever.es/auth/discord.php',
+    'discord_bot_token' => 'TU_NUEVO_BOT_TOKEN',
+    'discord_guild_id' => 'TU_GUILD_ID',
+    'discord_voice_channel_id' => 'TU_CANAL_DE_VOZ',
+    'discord_event_channel_id' => 'TU_CANAL_DE_EVENTOS',
+    'discord_member_role_name' => 'Miembros',
+    'discord_member_role_id' => 'TU_ID_DEL_ROL_MIEMBROS',
+    'rsp_discord_channel_id' => 'TU_CANAL_RSP',
+    'discord_profession_channel_id' => 'TU_CANAL_DE_PROFESIONES',
+    'discord_order_channel_id' => 'TU_CANAL_DE_PEDIDOS',
+    'discord_admin_channel_id' => 'TU_CANAL_DE_ADMINISTRACION',
+];

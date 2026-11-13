@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 220">
+<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#3a2b19"/><stop offset="1" stop-color="#17130e"/></linearGradient></defs>
+<rect x="6" y="6" width="148" height="208" rx="18" fill="url(#g)" stroke="#8b6a32" stroke-width="3"/>
+<circle cx="80" cy="83" r="43" fill="#6b5130" stroke="#d8ad55" stroke-width="3"/>
+<path d="M48 65 Q34 42 51 30 L70 54 M112 65 Q126 42 109 30 L90 54" fill="#594226" stroke="#d8ad55" stroke-width="3"/>
+<circle cx="64" cy="81" r="5" fill="#e7c66c"/><circle cx="96" cy="81" r="5" fill="#e7c66c"/>
+<path d="M65 103 Q80 113 95 103" fill="none" stroke="#d8ad55" stroke-width="3" stroke-linecap="round"/>
+<text x="80" y="160" text-anchor="middle" font-family="Arial,sans-serif" font-size="48" font-weight="700" fill="#d8ad55">E</text>
+<text x="80" y="190" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#eee">ELFO</text></svg>

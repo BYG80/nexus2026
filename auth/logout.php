@@ -1,0 +1,1 @@
+<?php require_once __DIR__.'/../config/bootstrap.php'; start_secure_session(); unset($_SESSION['member_discord_id'],$_SESSION['member_username'],$_SESSION['member_avatar']); header('Location: /calendario'); exit;

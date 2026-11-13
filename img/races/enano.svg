@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 200">
+<rect width="160" height="200" rx="18" fill="#101827"/>
+<circle cx="80" cy="82" r="52" fill="#26344a"/>
+<text x="80" y="94" text-anchor="middle" font-family="Arial,sans-serif" font-size="54">⛏</text>
+<text x="80" y="180" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#eee">ENANO</text>
+</svg>

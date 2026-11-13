@@ -1,0 +1,15 @@
+# Configuración privada y secretos locales
+/config/config.php
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencias, copias y archivos temporales
+node_modules/
+vendor/
+*.bak
+*.log
+.DS_Store
+Thumbs.db

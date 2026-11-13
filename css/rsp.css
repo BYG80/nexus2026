@@ -1,0 +1,19 @@
+/* NEXUS · RSP público */
+.rsp-table-wrap{overflow-x:auto;border:1px solid rgba(215,173,88,.20);border-radius:12px;background:rgba(6,9,13,.55);box-shadow:0 12px 30px rgba(0,0,0,.16)}
+.rsp-table{width:100%;border-collapse:separate;border-spacing:0;min-width:680px}
+.rsp-table th{padding:13px 16px;text-align:left;background:linear-gradient(180deg,rgba(215,173,88,.18),rgba(215,173,88,.08));color:var(--gold2);font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid rgba(215,173,88,.28)}
+.rsp-table td{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.07);vertical-align:middle}
+.rsp-table tbody tr:nth-child(even){background:rgba(255,255,255,.025)}
+.rsp-table tbody tr:hover{background:rgba(215,173,88,.055)}
+.rsp-table tbody tr:last-child td{border-bottom:0}
+.rsp-table th:first-child,.rsp-table td:first-child{padding-left:18px}
+.rsp-table .rsp-activity{font-weight:700;color:#fff}
+.rsp-table .rsp-points{width:125px;text-align:center;white-space:nowrap;color:var(--gold2);font-size:1rem;font-weight:800}
+.rsp-table .rsp-condition{color:var(--muted);font-size:.9rem}
+.rsp-table tr.rsp-limit{background:rgba(215,173,88,.055)}
+.rsp-table tr.rsp-limit .rsp-activity{color:var(--gold2)}
+.rsp-table tr.rsp-limit .rsp-points{font-size:1.05rem}
+.rsp-intro-card{margin-bottom:18px}
+.rsp-rules-grid{margin-top:18px}
+.rsp-section-title{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+@media(max-width:700px){.rsp-table{min-width:0}.rsp-table thead{display:none}.rsp-table,.rsp-table tbody,.rsp-table tr,.rsp-table td{display:block;width:100%}.rsp-table tr{padding:13px 15px;border-bottom:1px solid rgba(255,255,255,.08)}.rsp-table td{padding:3px 0;border:0}.rsp-table .rsp-points{width:auto;text-align:left}.rsp-table .rsp-condition{font-size:.82rem}.rsp-table .rsp-activity{font-size:.96rem}}
