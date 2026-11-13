@@ -139,7 +139,7 @@ try {
 
     <link
         rel="stylesheet"
-        href="./css/index.css"
+        href="./css/index.css?v=<?=filemtime(__DIR__ . '/css/index.css')?>"
     >
 
 
@@ -164,7 +164,7 @@ try {
 </head>
 
 
-<body>
+<body class="home-page">
 
 
     <!-- Navegación -->
@@ -279,12 +279,7 @@ try {
 
             <div class="container">
 
-                <div
-                    class="section-title"
-                    id="news-title"
-                >
-                    Últimas noticias
-                </div>
+                <h2 class="section-title" id="news-title">Últimas noticias</h2>
 
                 <p class="section-lead">
                     Novedades, avisos y comunicaciones de NEXUS.
@@ -421,7 +416,7 @@ try {
 
         <!-- Recursos de la comunidad -->
 
-        <section aria-label="Recursos de NEXUS">
+        <section class="home-resources" aria-label="Recursos de NEXUS">
 
             <div class="container grid two">
 
