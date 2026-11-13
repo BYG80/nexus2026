@@ -5,6 +5,7 @@ if(PHP_SAPI!=='cli')exit;
 require_once __DIR__.'/../includes/ai-chat.php';
 require_once __DIR__.'/../includes/armory.php';
 require_once __DIR__.'/../includes/news-html.php';
+require_once __DIR__.'/../includes/weekly-player.php';
 $count=0;
 function expect(bool $condition,string $message):void{global $count;if(!$condition)throw new RuntimeException($message);$count++;}
 function fails(callable $work,string $message):Throwable{try{$work();}catch(Throwable $e){expect(true,$message);return $e;}throw new RuntimeException($message);}
@@ -54,8 +55,26 @@ $armory=nexus_armory_members($pdo);
 $mine=array_values(array_filter($armory,fn($profile)=>$profile['name']==='Melkir'));
 expect(count($mine)===1&&$mine[0]['slug']==='melkir-vossgrave','Vincular el apellido confirmado solo a un perfil registrado');
 expect(!array_filter($armory,fn($profile)=>$profile['name']==='Ajeno Nexus'),'Excluir usuarios no verificados de la web');
+$pdo->prepare('UPDATE member_profiles SET name=? WHERE discord_id=?')->execute(['Prueba Destacada',$memberIds[0]]);
+// El reconocimiento solo se publica tras verificar un miembro y un retrato real.
+$weeklyFixture=['slug'=>'prueba-destacada','name'=>'Prueba Destacada','guild_slug'=>'nexusforever','faction'=>'Horda','portrait'=>'https://render.worldofwarcraft.com/forever-eu/character/test-main-raw.png','stale'=>false];
+$selected=nexus_weekly_save($pdo,'Prueba Destacada','Ayuda a sus compañeros','Una hazaña escrita por el administrador.','trophy',fn()=>$weeklyFixture);
+expect(nexus_weekly_player($pdo)['slug']==='prueba-destacada','Publicar reconocimiento de un miembro registrado');
+expect(nexus_weekly_player($pdo)['feat']==='Ayuda a sus compañeros','Conservar la hazaña del administrador');
+$pdo->prepare('UPDATE member_profiles SET name=? WHERE discord_id=?')->execute(['Prueba_Destacada',$memberIds[0]]);
+expect(nexus_weekly_save($pdo,'Prueba Destacada','Ayuda a sus compañeros','Una hazaña escrita por el administrador.','trophy',fn()=>$weeklyFixture)['profile_id']===$mine[0]['profile_id'],'Reconocer nombres registrados con guion bajo escribiendo nombre y apellido');
+fails(fn()=>nexus_weekly_save($pdo,'Prueba Destacada','Otro título','','invalid',fn()=>$weeklyFixture),'Rechazar iconos desconocidos');
+fails(fn()=>nexus_weekly_save($pdo,'Prueba Destacada','Otro título','','trophy',fn()=>[...$weeklyFixture,'portrait'=>'']),'No publicar un personaje sin retrato');
+fails(fn()=>nexus_weekly_save($pdo,'Prueba Destacada','Otro título','','trophy',fn()=>[...$weeklyFixture,'guild_slug'=>'otra-guild']),'Comprobar la hermandad del jugador destacado');
+expect(nexus_weekly_player($pdo)['feat']==='Ayuda a sus compañeros','No perder el reconocimiento anterior si falla el nuevo');
+$unexpectedLookup=false;
+fails(function()use($pdo,&$unexpectedLookup,$weeklyFixture){nexus_weekly_save($pdo,'Ajeno Nexus','','','trophy',function()use(&$unexpectedLookup,$weeklyFixture){$unexpectedLookup=true;return $weeklyFixture;});},'No destacar cuentas no verificadas');
+expect(!$unexpectedLookup,'No consultar Blizzard para un personaje no autorizado');
 $pdo->prepare('UPDATE members SET is_member=0 WHERE discord_id=?')->execute([$memberIds[0]]);
-expect(!array_filter(nexus_armory_members($pdo),fn($profile)=>$profile['name']==='Melkir'),'Retirar de la armería al dejar de ser miembro verificado');
+expect(!array_filter(nexus_armory_members($pdo),fn($profile)=>$profile['profile_id']===$mine[0]['profile_id']),'Retirar de la armería al dejar de ser miembro verificado');
+expect(nexus_weekly_player($pdo)===null,'Ocultar el reconocimiento si pierde su condición de miembro');
+nexus_weekly_clear($pdo);
+expect(nexus_weekly_player($pdo)===null,'Retirar el reconocimiento sin borrar personajes');
 foreach($memberIds as $id){$pdo->prepare('DELETE FROM member_profiles WHERE discord_id=?')->execute([$id]);$pdo->prepare('DELETE FROM members WHERE discord_id=?')->execute([$id]);}
 $pdo->exec('DELETE FROM event_attendees');$pdo->exec('DELETE FROM events');$pdo->exec('DELETE FROM discord_media_publications');$pdo->exec('DELETE FROM media');
 $pdo->prepare('INSERT INTO events (event_date,event_time,title,type,description) VALUES (?,?,?,?,?)')->execute([$future,'22:00','Raid de prueba','Raid','Solo prueba']);$eventId=(int)$pdo->lastInsertId();

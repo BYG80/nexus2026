@@ -4,6 +4,8 @@ start_secure_session();
 
 require_once __DIR__ . '/includes/seo.php';
 require_once __DIR__ . '/includes/news-html.php';
+require_once __DIR__ . '/includes/weekly-player.php';
+$weeklyPlayer = nexus_weekly_player();
 
 $latestNews = [];
 
@@ -172,6 +174,8 @@ try {
                 </div>
             </div>
         </section>
+
+        <?php include __DIR__ . '/includes/weekly-player-section.php'; ?>
 
         <!-- Presentación -->
 

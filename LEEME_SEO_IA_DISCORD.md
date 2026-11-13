@@ -102,6 +102,16 @@ Solo se incluyen personajes de miembros registrados en la web cuyo registro de D
 
 Hay caché de diez minutos y un máximo de una comprobación cada dos minutos por personaje. Si Blizzard falla, puede mostrarse la última copia de hasta 24 horas, indicada como desactualizada. Solo se aceptan imágenes del dominio de renderizado de Blizzard.
 
+## Jugador de la semana
+
+En **Admin → Jugador de la semana** escribe el nombre y apellido de un personaje, añade la hazaña o título que tú decidas, un detalle opcional y elige el icono. Al publicar, aparece una sección inmediatamente debajo del carrusel del inicio, con la imagen del personaje y su reconocimiento, sin objetos ni estadísticas de la armería.
+
+El nombre debe corresponder a un miembro verificado de nuestra web; se admiten los nombres completos, vinculaciones de Admin → Armería y nombres registrados con guion bajo. Si solo existe el nombre de pila, se acepta únicamente cuando identifica un solo perfil registrado, y se comprueba además el nombre completo en Blizzard. Las identidades ambiguas deben completarse en Mi panel o Admin → Armería.
+
+Antes de guardar se comprueban identidad, Horda, NexusForever e imagen de cuerpo completo en la armería pública de WoW Forever EU. Si falla la consulta, el reconocimiento anterior se conserva. La portada usa esa imagen verificada sin consultar Blizzard en cada visita. Puedes volver a guardar para actualizarla.
+
+El reconocimiento se mantiene hasta que lo cambies o pulses **Retirar reconocimiento**. No se elige otro jugador automáticamente al cambiar la semana. Si no hay selección, la sección permanece oculta; si el perfil deja de ser un miembro verificado en la web, también se oculta. No se necesita una nueva tabla ni migración: se usa `nexus_settings`.
+
 ## Validación y límites
 
 Las pruebas de integración usan una base MariaDB local de pruebas y respuestas simuladas de Discord/OpenAI: no publican mensajes reales. Se comprueban creación/reintento de eventos, independencia del aviso de canal, imágenes sin duplicados vinculados, cuotas, errores HTTP, redirecciones, extracción de equipo y respuestas de IA. `tests/regression.php` exige una base terminada en `_test`.

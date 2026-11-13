@@ -79,7 +79,7 @@ function admin_header(
 
         <link
             rel="stylesheet"
-            href="/Admin/assets/admin.css"
+            href="/Admin/assets/admin.css?v=<?=filemtime(__DIR__ . '/assets/admin.css')?>"
         >
 
         <link
@@ -174,6 +174,7 @@ function admin_header(
                 <?php if ($sessionRole === 'admin'): ?>
                     <a class="<?= $active === 'chat' ? 'active' : '' ?>" href="/Admin/chat.php">Asistente IA</a>
                     <a class="<?= $active === 'armory' ? 'active' : '' ?>" href="/Admin/armeria.php">Armería</a>
+                    <a class="<?= $active === 'weekly-player' ? 'active' : '' ?>" href="/Admin/jugador-semana.php">Jugador de la semana</a>
                     <a class="<?= $active === 'integrations' ? 'active' : '' ?>" href="/Admin/integraciones.php">Integraciones Discord</a>
                     <a class="<?= $active === 'faction' ? 'active' : '' ?>" href="/Admin/faccion.php">
                         Facción

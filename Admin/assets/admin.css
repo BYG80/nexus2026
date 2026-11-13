@@ -53,3 +53,6 @@ body.admin-body{background:#0a0b0e}.admin-shell{min-height:100vh}.admin-top{bord
 .rsp-rule-tile:has(input:checked) .rsp-rule-tick{opacity:1;transform:scale(1)}
 .rsp-rule-tick{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#d8ad55;color:#111;font-size:.7rem;font-weight:900;opacity:.22;transform:scale(.85);transition:.15s;flex:0 0 18px}
 @media(max-width:700px){.rsp-rule-summary{justify-content:flex-start;flex-wrap:wrap}.rsp-rule-group h3{font-size:.88rem}}
+
+/* Vista previa del jugador de la semana */
+.weekly-admin-portrait{height:280px;max-width:340px;overflow:hidden;margin:0 auto 20px;background:radial-gradient(ellipse,#d7ad5818,transparent 70%)}.weekly-admin-portrait img{display:block;width:100%;height:100%;object-fit:cover;transform:scale(1.6);transform-origin:45% 55%}
