@@ -36,40 +36,18 @@ function sanitize_news_html(string $html): string
 <html lang="es">
 
 <head>
-
 <meta charset="utf-8">
-
-<meta
-    name="viewport"
-    content="width=device-width,initial-scale=1"
->
-
-<title>
-    Noticias | NEXUS — Veteranos de Azeroth
-</title>
-
-<meta
-    name="description"
-    content="Noticias y comunicados de la hermandad NEXUS."
->
-
-<link
-    rel="canonical"
-    href="https://www.nexus-forever.es/noticias.php"
->
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/noticias'); ?>
 <link
     rel="stylesheet"
     href="./css/global.css"
 >
-
 <link
     rel="icon"
     type="image/x-icon"
     href="./favicon.ico"
 >
-
-
 <style>
 
 /* ================================
@@ -178,7 +156,6 @@ function sanitize_news_html(string $html): string
 }
 
 </style>
-
 </head>
 
 

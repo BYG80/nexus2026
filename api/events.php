@@ -1,42 +1,47 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/../config/bootstrap.php';
-function require_admin_api(): void { start_secure_session(); if (empty($_SESSION['admin_user'])) json_response(['error'=>'No autorizado'],401); }
-$method=$_SERVER['REQUEST_METHOD'];
-try {
-    if (!nexus_is_configured()) {
-        if ($method !== 'GET') require_admin_api();
-        $file=__DIR__.'/../datos/eventos.json';
-        $events=is_file($file)?json_decode(file_get_contents($file),true):[];
-        $events=is_array($events)?$events:[];
-        start_secure_session();
-        $discordId=(string)($_SESSION['member_discord_id']??'');
-        $attendeesFile=__DIR__.'/../datos/inscripciones.json';
-        $attendees=is_file($attendeesFile)?json_decode((string)file_get_contents($attendeesFile),true):[];
-        $attendees=is_array($attendees)?$attendees:[];
-        foreach($events as &$event){
-            $event['id']=(int)($event['id']??0);
-            $count=0; $mine=null;
-            foreach($attendees as $a){
-                if((int)($a['event_id']??0)===$event['id']){
-                    $count++;
-                    if($discordId && (string)($a['member_discord_id']??'')===$discordId) $mine=$a;
-                }
-            }
-            $event['attendee_count']=$count;
-            $event['user_registered']=!!$mine;
-            $event['user_race']=$mine['race']??'';
-            $event['user_class']=$mine['class_name']??'';
-        }
-        unset($event);
-        json_response($events);
+header('X-Robots-Tag: noindex, nofollow');
+start_secure_session();
+$method=$_SERVER['REQUEST_METHOD']??'GET';
+$pdo=null;
+try{
+    if($method==='GET'){
+        if(!nexus_is_configured())json_response([]);
+        $pdo=db();$discordId=(string)($_SESSION['member_discord_id']??'');
+        $rows=$pdo->query("SELECT e.id,e.event_date AS date,e.event_time AS time,e.title,e.type,e.description,e.discord_event_url,(SELECT COUNT(*) FROM event_attendees a WHERE a.event_id=e.id) AS attendee_count,(SELECT COUNT(*) FROM event_attendees a WHERE a.event_id=e.id AND a.attended=1) AS attended_count FROM events e ORDER BY event_date,event_time,id")->fetchAll(PDO::FETCH_ASSOC);
+        $mine=[];
+        if($discordId!==''){$stmt=$pdo->prepare('SELECT event_id,character_id,race,class_name,registered_via_web FROM event_attendees WHERE member_discord_id=?');$stmt->execute([$discordId]);foreach($stmt->fetchAll(PDO::FETCH_ASSOC)as$row)$mine[(int)$row['event_id']]=$row;}
+        foreach($rows as &$event){$own=$mine[(int)$event['id']]??null;$event['user_registered']=$own&&(int)$own['registered_via_web']===1;$event['user_race']=$own['race']??'';$event['user_class']=$own['class_name']??'';$event['character_id']=$own['character_id']??null;}unset($event);
+        json_response($rows);
     }
+    if(empty($_SESSION['admin_user']))json_response(['error'=>'No autorizado.'],401);
+    if(!in_array($method,['POST','PUT','DELETE'],true)){header('Allow: GET, POST, PUT, DELETE');json_response(['error'=>'Método no permitido.'],405);}
+    $raw=file_get_contents('php://input',false,null,0,32769);
+    if($raw===false||strlen($raw)>32768)json_response(['error'=>'Solicitud demasiado larga.'],413);
+    $input=json_decode($raw,true);
+    if(!is_array($input))$input=[];
+    $csrf=$_SERVER['HTTP_X_CSRF_TOKEN']??$input['csrf']??null;
+    if(!is_string($csrf)||!csrf_check($csrf))json_response(['error'=>'Recarga la página: token de sesión no válido.'],403);
     $pdo=db();
-    if ($method==='GET') { start_secure_session(); $discordId=(string)($_SESSION['member_discord_id']??''); $rows=$pdo->query("SELECT e.id,e.event_date AS date,e.event_time AS time,e.title,e.type,e.description,e.discord_event_url,(SELECT COUNT(*) FROM event_attendees a WHERE a.event_id=e.id) AS attendee_count,(SELECT COUNT(*) FROM event_attendees a WHERE a.event_id=e.id AND a.attended=1) AS attended_count FROM events e ORDER BY event_date,event_time,id")->fetchAll(); if($discordId){$q=$pdo->prepare('SELECT event_id,race,class_name FROM event_attendees WHERE member_discord_id=?');$q->execute([$discordId]);$mine=[];foreach($q->fetchAll() as $r)$mine[(int)$r['event_id']]=$r;foreach($rows as &$row){$m=$mine[(int)$row['id']]??null;$row['user_registered']=!!$m;$row['user_race']=$m['race']??'';$row['user_class']=$m['class_name']??'';}unset($row);} json_response($rows); }
-    require_admin_api();
-    $input=json_decode(file_get_contents('php://input'),true) ?: [];
-    if ($method==='POST') { $stmt=$pdo->prepare('INSERT INTO events(event_date,event_time,title,type,description) VALUES(?,?,?,?,?)'); $stmt->execute([$input['date']??'', $input['time']??null, trim($input['title']??''), trim($input['type']??'Evento'), trim($input['description']??'')]); json_response(['ok'=>true,'id'=>(int)$pdo->lastInsertId()],201); }
     $path=parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH)??'';
-    if (preg_match('#/api/events/(\d+)$#',$path,$m)) { $id=(int)$m[1]; if($method==='PUT'){ $s=$pdo->prepare('UPDATE events SET event_date=?,event_time=?,title=?,type=?,description=? WHERE id=?'); $s->execute([$input['date']??'', $input['time']??null, trim($input['title']??''), trim($input['type']??'Evento'), trim($input['description']??''),$id]); json_response(['ok'=>true]); } if($method==='DELETE'){ $pdo->prepare('DELETE FROM events WHERE id=?')->execute([$id]); json_response(['ok'=>true]); } }
-    json_response(['error'=>'Método no permitido'],405);
-} catch(Throwable $e) { json_response(['error'=>'Error del servidor'],500); }
+    $id=(int)($_GET['event_id']??$input['id']??0);
+    if(preg_match('~/api/events/(\d+)$~',$path,$match))$id=(int)$match[1];
+    if($method==='DELETE'){
+        if($id<1)json_response(['error'=>'Evento no válido.'],400);
+        nexus_delete_web_event($pdo,$id);json_response(['ok'=>true]);
+    }
+    $date=trim((string)($input['date']??''));$time=trim((string)($input['time']??''));$title=trim((string)($input['title']??''));$type=trim((string)($input['type']??'Evento'));$description=trim((string)($input['description']??''));
+    nexus_validate_event_input($date,$time,$title,$type,$description);
+    $values=[$date,$time?:null,$title,$type,$description];
+    if($method==='POST'){$pdo->prepare('INSERT INTO events(event_date,event_time,title,type,description) VALUES(?,?,?,?,?)')->execute($values);$id=(int)$pdo->lastInsertId();}
+    else{
+        if($id<1)json_response(['error'=>'Evento no válido.'],400);
+        $exists=$pdo->prepare('SELECT id FROM events WHERE id=?');$exists->execute([$id]);if(!$exists->fetchColumn())json_response(['error'=>'El evento no existe.'],404);
+        $pdo->prepare('UPDATE events SET event_date=?,event_time=?,title=?,type=?,description=? WHERE id=?')->execute([...$values,$id]);
+    }
+    $sync=nexus_publish_event($pdo,$id);
+    json_response(['ok'=>true,'id'=>$id,'discord_sync'=>$sync],$method==='POST'?201:200);
+}catch(InvalidArgumentException $error){json_response(['error'=>$error->getMessage()],400);}
+catch(NexusDiscordException $error){json_response(['error'=>$error->getMessage()],502);}
+catch(Throwable $error){json_response(['error'=>'No se ha podido completar la operación. La creación y la sincronización se comprueban en el panel de eventos.'],503);}

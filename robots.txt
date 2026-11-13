@@ -4,8 +4,12 @@ Disallow: /Admin/
 Disallow: /api/
 Disallow: /auth/
 Disallow: /config/
+Disallow: /datos/
+Disallow: /includes/
+Disallow: /tools/
 Disallow: /test-bootstrap.php
 Disallow: /php-test.php
 Disallow: /test/
+Disallow: /tests/
 
-Sitemap: https://www.nexus-forever.es/sitemap.xml
+Sitemap: https://www.nexus-forever.es/sitemap.php

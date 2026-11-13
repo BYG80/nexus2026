@@ -32,318 +32,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         */
 
         if ($action === 'save') {
-
             check_csrf($_POST['csrf'] ?? null);
-
             $id = (int)($_POST['id'] ?? 0);
-
             $date = trim((string)($_POST['date'] ?? ''));
             $time = trim((string)($_POST['time'] ?? ''));
             $title = trim((string)($_POST['title'] ?? ''));
             $type = trim((string)($_POST['type'] ?? 'Evento'));
             $description = trim((string)($_POST['description'] ?? ''));
-
-            if ($date === '') {
-                throw new RuntimeException(
-                    'La fecha es obligatoria.'
-                );
-            }
-
-            if ($title === '') {
-                throw new RuntimeException(
-                    'El título del evento es obligatorio.'
-                );
-            }
-
-            $timeValue = $time !== ''
-                ? $time
-                : null;
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | EDITAR
-            |--------------------------------------------------------------------------
-            */
-
+            nexus_validate_event_input($date, $time, $title, $type, $description);
+            $values = [$date, $time ?: null, $title, $type, $description];
             if ($id > 0) {
-
-                $stmt = $pdo->prepare(
-                    'UPDATE events
-                     SET
-                        event_date = ?,
-                        event_time = ?,
-                        title = ?,
-                        type = ?,
-                        description = ?
-                     WHERE id = ?'
-                );
-
-                $stmt->execute([
-                    $date,
-                    $timeValue,
-                    $title,
-                    $type,
-                    $description,
-                    $id
-                ]);
-
-                $msg =
-                    'Evento actualizado correctamente.';
-
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | CREAR
-            |--------------------------------------------------------------------------
-            */
-
-            else {
-
-                $stmt = $pdo->prepare(
-                    'INSERT INTO events
-                    (
-                        event_date,
-                        event_time,
-                        title,
-                        type,
-                        description
-                    )
-                    VALUES (?, ?, ?, ?, ?)'
-                );
-
-                $stmt->execute([
-                    $date,
-                    $timeValue,
-                    $title,
-                    $type,
-                    $description
-                ]);
-
+                $pdo->prepare('UPDATE events SET event_date=?, event_time=?, title=?, type=?, description=? WHERE id=?')->execute([...$values, $id]);
+            } else {
+                $pdo->prepare('INSERT INTO events (event_date,event_time,title,type,description) VALUES (?,?,?,?,?)')->execute($values);
                 $id = (int)$pdo->lastInsertId();
-
-                if ($id <= 0) {
-                    throw new RuntimeException(
-                        'El evento aparentemente se guardó, pero MySQL no devolvió su ID.'
-                    );
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | CREAR EVENTO EN DISCORD
-                |--------------------------------------------------------------------------
-                */
-
-                if (
-                    !empty($_POST['discord_event']) &&
-                    function_exists('discord_create_event') &&
-                    app_config('discord_bot_token') &&
-                    app_config('discord_guild_id') &&
-                    app_config('discord_voice_channel_id')
-                ) {
-
-                    try {
-
-                        $discordData =
-                            discord_create_event([
-                                'date' =>
-                                    $date,
-
-                                'time' =>
-                                    $timeValue,
-
-                                'title' =>
-                                    $title,
-
-                                'type' =>
-                                    $type,
-
-                                'description' =>
-                                    $description
-                            ]);
-
-
-                        if (
-                            is_array($discordData) &&
-                            !empty($discordData['id'])
-                        ) {
-
-                            $discordId =
-                                (string)$discordData['id'];
-
-                            $discordUrl =
-                                'https://discord.com/events/' .
-                                app_config('discord_guild_id') .
-                                '/' .
-                                $discordId;
-
-
-                            $updateDiscord =
-                                $pdo->prepare(
-                                    'UPDATE events
-                                     SET
-                                        discord_event_id = ?,
-                                        discord_event_url = ?
-                                     WHERE id = ?'
-                                );
-
-                            $updateDiscord->execute([
-                                $discordId,
-                                $discordUrl,
-                                $id
-                            ]);
-
-
-                            $msg =
-                                'Evento creado correctamente y vinculado con Discord.';
-
-                        } else {
-
-                            $msg =
-                                'Evento creado correctamente, pero Discord no devolvió un ID de evento.';
-                        }
-
-                    } catch (Throwable $discordError) {
-
-                        $msg =
-                            'Evento creado correctamente, pero no se pudo crear en Discord: ' .
-                            $discordError->getMessage();
-
-                        $msgType =
-                            'error-box';
-                    }
-
-                } else {
-
-                    $msg =
-                        'Evento creado correctamente.';
-                }
             }
-
-
-            if ($msgType === 'flash') {
-
-                header(
-                    'Location: /Admin/events.php?saved=1'
-                );
-
-                exit;
-            }
+            $sync = nexus_publish_event($pdo, $id);
+            $_SESSION['events_flash'] = $sync['ok'] ? 'Evento guardado y publicado en Eventos de Discord y en el canal de eventos.' : 'Evento guardado en la web. Pendiente de Discord: ' . $sync['error'];
+            $_SESSION['events_flash_error'] = !$sync['ok'];
+            header('Location: /Admin/events.php?saved=1');
+            exit;
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | ELIMINAR EVENTO
-        |--------------------------------------------------------------------------
-        */
-
         elseif ($action === 'delete') {
-
             check_csrf($_POST['csrf'] ?? null);
-
-            $id = (int)($_POST['id'] ?? 0);
-
-            if ($id <= 0) {
-                throw new RuntimeException(
-                    'ID de evento no válido.'
-                );
-            }
-
-
-            $find = $pdo->prepare(
-                'SELECT
-                    id,
-                    title,
-                    discord_event_id
-                 FROM events
-                 WHERE id = ?
-                 LIMIT 1'
-            );
-
-            $find->execute([
-                $id
-            ]);
-
-            $event = $find->fetch();
-
-            if (!$event) {
-                throw new RuntimeException(
-                    'El evento no existe.'
-                );
-            }
-
-
-            $pdo->beginTransaction();
-
-            try {
-
-                $deleteAttendees =
-                    $pdo->prepare(
-                        'DELETE FROM event_attendees
-                         WHERE event_id = ?'
-                    );
-
-                $deleteAttendees->execute([
-                    $id
-                ]);
-
-
-                $deleteEvent =
-                    $pdo->prepare(
-                        'DELETE FROM events
-                         WHERE id = ?'
-                    );
-
-                $deleteEvent->execute([
-                    $id
-                ]);
-
-
-                if ($deleteEvent->rowCount() !== 1) {
-
-                    throw new RuntimeException(
-                        'MySQL no eliminó el evento.'
-                    );
-                }
-
-
-                $pdo->commit();
-
-            } catch (Throwable $deleteError) {
-
-                if ($pdo->inTransaction()) {
-                    $pdo->rollBack();
-                }
-
-                throw $deleteError;
-            }
-
-
-            if (
-                !empty($event['discord_event_id']) &&
-                function_exists('discord_delete_event')
-            ) {
-
-                try {
-
-                    discord_delete_event(
-                        (string)$event['discord_event_id']
-                    );
-
-                } catch (Throwable $discordDeleteError) {
-                    // El borrado web ya se ha realizado.
-                }
-            }
-
-
-            header(
-                'Location: /Admin/events.php?deleted=1'
-            );
-
+            $id=(int)($_POST['id']??0);
+            if($id<1)throw new InvalidArgumentException('Evento no válido.');
+            nexus_delete_web_event($pdo,$id);
+            header('Location: /Admin/events.php?deleted=1');
             exit;
         }
 
@@ -365,12 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 */
 
 if (isset($_GET['saved'])) {
-
-    $msg =
-        'Evento guardado correctamente.';
-
-    $msgType =
-        'flash';
+    $msg = (string)($_SESSION['events_flash'] ?? 'Evento guardado correctamente.');
+    $msgType = !empty($_SESSION['events_flash_error']) ? 'error-box' : 'flash';
+    unset($_SESSION['events_flash'], $_SESSION['events_flash_error']);
 }
 
 if (isset($_GET['deleted'])) {
@@ -429,95 +142,7 @@ if (isset($_GET['edit'])) {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| SINCRONIZACIÓN AUTOMÁTICA DE DISCORD
-|--------------------------------------------------------------------------
-*/
-
-try {
-
-    $past = $pdo->query(
-        "SELECT
-            id,
-            event_date,
-            event_time,
-            discord_event_id,
-            discord_last_synced_at
-         FROM events
-         WHERE discord_event_id IS NOT NULL
-           AND event_date >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)"
-    )->fetchAll();
-
-
-    $now =
-        new DateTimeImmutable(
-            'now',
-            app_timezone()
-        );
-
-
-    foreach ($past as $pe) {
-
-        if (empty($pe['discord_event_id'])) {
-            continue;
-        }
-
-        try {
-
-            $start =
-                event_start_utc($pe);
-
-
-            $last =
-                !empty($pe['discord_last_synced_at'])
-                    ? new DateTimeImmutable(
-                        $pe['discord_last_synced_at']
-                    )
-                    : null;
-
-
-            if (
-                $start->modify('+2 hours')->getTimestamp()
-                <= $now->getTimestamp()
-                &&
-                (
-                    !$last ||
-                    $now->getTimestamp()
-                    - $last->getTimestamp()
-                    >= 600
-                )
-            ) {
-
-                if (
-                    function_exists(
-                        'sync_discord_event'
-                    )
-                ) {
-
-                    sync_discord_event(
-                        $pdo,
-                        (int)$pe['id'],
-                        false
-                    );
-                }
-            }
-
-        } catch (Throwable $ignored) {
-            // No romper el panel.
-        }
-    }
-
-} catch (Throwable $ignored) {
-    // Discord no debe dejar el panel en blanco.
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| LISTADO DE EVENTOS
-|--------------------------------------------------------------------------
-*/
+// La actualización de interesados es explícita o mediante el script cron CLI.
 
 $events = $pdo->query(
     "SELECT
@@ -698,28 +323,7 @@ admin_header(
         </label>
 
 
-        <?php if (!$edit): ?>
-
-            <label
-                style="
-                    display:flex;
-                    align-items:center;
-                    gap:8px;
-                "
-            >
-
-                <input
-                    type="checkbox"
-                    name="discord_event"
-                    value="1"
-                    style="width:auto"
-                >
-
-                Crear también un evento programado en Discord
-
-            </label>
-
-        <?php endif; ?>
+        <p class="small">Al guardar se sincronizan el evento programado de Discord y el aviso del canal. Si falta configuración o permisos, verás el error y podrás reintentar sin volver a crear el evento.</p>
 
 
         <div class="admin-actions">
@@ -848,6 +452,7 @@ admin_header(
                         <?= e(
                             (string)$event['discord_count']
                         ) ?>
+                        <?php if (!empty($event['discord_sync_error'])): ?><div class="error-box small"><?=e($event['discord_sync_error'])?></div><?php endif; ?>
 
 
                         <?php if (
@@ -891,15 +496,7 @@ admin_header(
                         >
                             Ver
                         </button>
-
-
-                        <?php if (
-                            !empty(
-                                $event['discord_event_id']
-                            )
-                        ): ?>
-
-                            <button
+<button
                                 type="button"
                                 class="btn ghost sync-event"
                                 data-event="<?= e(
@@ -909,7 +506,6 @@ admin_header(
                                 Sincronizar
                             </button>
 
-                        <?php endif; ?>
 
 
                         <a
@@ -1017,6 +613,7 @@ admin_header(
 
 
 <script>
+const NEXUS_EVENTS_CSRF = <?=json_encode(csrf_token())?>;
 
 const escA = s =>
     String(s ?? '').replace(
@@ -1256,6 +853,7 @@ async function loadAttendees(id) {
 
                         const fd =
                             new FormData();
+                        fd.set('csrf', NEXUS_EVENTS_CSRF);
 
 
                         fd.append(
@@ -1384,6 +982,7 @@ document
 
                     const fd =
                         new FormData();
+                        fd.set('csrf', NEXUS_EVENTS_CSRF);
 
 
                     fd.append(

@@ -1,287 +1,78 @@
-
 <?php
-
+declare(strict_types=1);
 require_once __DIR__ . '/../config/bootstrap.php';
-
+header('X-Robots-Tag: noindex, nofollow');
+header('Cache-Control: no-store');
+if (!discord_configured()) { http_response_code(503); exit('El acceso con Discord aún no está configurado en el servidor.'); }
+$callback = discord_redirect_uri();
+$parts = parse_url($callback);
+if (($parts['scheme'] ?? '') !== 'https' || empty($parts['host'])) { http_response_code(503); exit('La URL de retorno de Discord debe ser una URL HTTPS válida.'); }
+$callbackHost = strtolower($parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : ''));
+if (strtolower($_SERVER['HTTP_HOST'] ?? '') !== $callbackHost) {
+    header('Location: ' . $callback . ($_GET ? '?' . http_build_query($_GET) : ''), true, 302);
+    exit;
+}
 start_secure_session();
-
-// Canonicalizar el dominio antes de iniciar el flujo OAuth. Así evitamos
-// que una sesión creada en nexus-forever.es se pierda al volver a www.
-$host = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
-if ($host !== 'www.nexus-forever.es') {
-    $query = $_GET;
-    $target = 'https://www.nexus-forever.es/auth/discord.php';
-    if ($query) {
-        $target .= '?' . http_build_query($query);
-    }
-    header('Location: ' . $target, true, 302);
-    exit;
-}
-
-if (!discord_configured()) {
-    http_response_code(503);
-    exit('Discord no está configurado. Añade las credenciales OAuth2 en config/config.php.');
-}
-
-$pdo = null;
-
-/*
- * Página a la que volver después de iniciar sesión.
- * Solo permitimos rutas internas.
- */
-$returnTo = (string)($_GET['return_to'] ?? '/calendario.php');
-
-if (
-    $returnTo === '' ||
-    $returnTo[0] !== '/' ||
-    str_starts_with($returnTo, '//') ||
-    preg_match('/^\/auth\//i', $returnTo)
-) {
-    $returnTo = '/panel.php';
-}
-
-/*
- * Si todavía no tenemos código OAuth,
- * enviamos al usuario a Discord.
- */
-$code  = trim((string)($_GET['code'] ?? ''));
-$state = (string)($_GET['state'] ?? '');
-
-if (!$code) {
-
-    $state = bin2hex(random_bytes(24));
-
+$returnTo = nexus_safe_return_to(is_string($_GET['return_to'] ?? null) ? $_GET['return_to'] : '/panel');
+$code = is_string($_GET['code'] ?? null) ? trim($_GET['code']) : '';
+$state = is_string($_GET['state'] ?? null) ? $_GET['state'] : '';
+if ($code === '' && !isset($_GET['error'])) {
+    $state = bin2hex(random_bytes(32));
     $_SESSION['discord_oauth_state'] = $state;
+    $_SESSION['discord_oauth_created'] = time();
     $_SESSION['discord_oauth_return_to'] = $returnTo;
-
-    $params = http_build_query([
-        'client_id'     => app_config('discord_client_id'),
-        'redirect_uri'  => discord_redirect_uri(),
-        'response_type' => 'code',
-        'scope'         => 'identify email',
-        'state'         => $state
-    ]);
-
-    header(
-        'Location: https://discord.com/oauth2/authorize?' . $params,
-        true,
-        302
-    );
-
+    header('Location: https://discord.com/oauth2/authorize?' . http_build_query([
+        'client_id' => app_config('discord_client_id'), 'redirect_uri' => $callback,
+        'response_type' => 'code', 'scope' => 'identify', 'state' => $state,
+    ]), true, 302);
     exit;
 }
-
-/*
- * Comprobar estado OAuth.
- */
-if (
-    !$state ||
-    !hash_equals(
-        (string)($_SESSION['discord_oauth_state'] ?? ''),
-        $state
-    )
-) {
-    http_response_code(400);
-    exit('Estado OAuth no válido.');
+if ($state === '' || !hash_equals((string)($_SESSION['discord_oauth_state'] ?? ''), $state) || (int)($_SESSION['discord_oauth_created'] ?? 0) < time() - 600) {
+    http_response_code(400); exit('La sesión de acceso ha caducado o no es válida. Vuelve a iniciar sesión desde la web.');
 }
+$returnTo = nexus_safe_return_to((string)($_SESSION['discord_oauth_return_to'] ?? '/panel'));
+unset($_SESSION['discord_oauth_state'], $_SESSION['discord_oauth_created'], $_SESSION['discord_oauth_return_to']);
+if (isset($_GET['error'])) { http_response_code(400); exit('Has cancelado el acceso con Discord. Puedes volver a intentarlo desde la web.'); }
 
-unset($_SESSION['discord_oauth_state']);
-
-/*
- * Recuperar destino guardado antes de ir a Discord.
- */
-$returnTo = (string)(
-    $_SESSION['discord_oauth_return_to'] ?? '/calendario.php'
-);
-
-unset($_SESSION['discord_oauth_return_to']);
-
-/*
- * Seguridad adicional para el destino.
- */
-if (
-    $returnTo === '' ||
-    $returnTo[0] !== '/' ||
-    str_starts_with($returnTo, '//') ||
-    preg_match('/^\/auth\//i', $returnTo)
-) {
-    $returnTo = '/panel.php';
+function nexus_oauth_http(string $url, array $headers, ?array $form = null): array
+{
+    if (!function_exists('curl_init')) throw new RuntimeException('PHP cURL no disponible.');
+    $handle = curl_init($url);
+    $options = [CURLOPT_RETURNTRANSFER=>true,CURLOPT_HTTPHEADER=>$headers,CURLOPT_CONNECTTIMEOUT=>8,CURLOPT_TIMEOUT=>20,CURLOPT_FOLLOWLOCATION=>false];
+    if ($form !== null) { $options[CURLOPT_POST]=true; $options[CURLOPT_POSTFIELDS]=http_build_query($form); }
+    curl_setopt_array($handle,$options);
+    try {
+        $body=curl_exec($handle); $status=(int)curl_getinfo($handle,CURLINFO_HTTP_CODE);
+        $data=$body===false?null:json_decode($body,true);
+        if ($body===false || $status!==200 || !is_array($data)) throw new RuntimeException('Discord no ha completado la autenticación.');
+        return $data;
+    } finally { curl_close($handle); }
 }
-
-/*
- * Intercambiar el código OAuth por un access token.
- */
-$ch = curl_init('https://discord.com/api/oauth2/token');
-
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => http_build_query([
-        'client_id'     => app_config('discord_client_id'),
-        'client_secret' => app_config('discord_client_secret'),
-        'grant_type'    => 'authorization_code',
-        'code'          => $code,
-        'redirect_uri'  => discord_redirect_uri()
-    ]),
-    CURLOPT_HTTPHEADER => [
-        'Content-Type: application/x-www-form-urlencoded'
-    ]
-]);
-
-$raw = curl_exec($ch);
-$status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-
-$token = json_decode((string)$raw, true);
-
-if (
-    $status !== 200 ||
-    empty($token['access_token'])
-) {
-    http_response_code(502);
-    exit('No se pudo autenticar con Discord.');
-}
-
-/*
- * Obtener información del usuario de Discord.
- */
-$ch = curl_init('https://discord.com/api/users/@me');
-
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        'Authorization: Bearer ' . $token['access_token']
-    ]
-]);
-
-$raw = curl_exec($ch);
-$status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-
-$d = json_decode((string)$raw, true);
-
-if (
-    $status !== 200 ||
-    empty($d['id'])
-) {
-    http_response_code(502);
-    exit('No se pudo obtener tu cuenta de Discord.');
-}
-
-/*
- * Datos básicos del usuario.
- */
-$username = (string)(
-    $d['global_name']
-    ?? $d['username']
-    ?? 'Discord'
-);
-
-$avatar = !empty($d['avatar'])
-    ? 'https://cdn.discordapp.com/avatars/'
-        . $d['id']
-        . '/'
-        . $d['avatar']
-        . '.png'
-    : null;
-
-/* Verificar pertenencia real al servidor y rol Miembros mediante el bot. */
-$memberRole = discord_member_role_info((string)$d['id']);
-if ($memberRole === null) {
-    http_response_code(403);
-    exit('Tu cuenta de Discord no tiene el rol Miembros en el servidor de NEXUS.');
-}
-
-/*
- * Guardar / actualizar usuario y miembro.
- * La conexión MySQL se abre aquí, después de completar OAuth,
- * para que un fallo de base de datos no impida siquiera iniciar
- * el flujo de login de Discord.
- */
 try {
-    $pdo = nexus_is_configured() ? db() : null;
-} catch (Throwable $dbError) {
-    http_response_code(503);
-    exit(
-        'La conexión con la base de datos de NEXUS no está disponible. ' .
-        'Revisa config/config.php (usuario, contraseña y base de datos MySQL). ' .
-        'Código: DB-1045.'
-    );
-}
-
-if ($pdo) {
-
-    /*
-     * Comprobar si es administrador.
-     */
-    $st = $pdo->prepare(
-        'SELECT id FROM users WHERE discord_id=? LIMIT 1'
-    );
-
-    $st->execute([$d['id']]);
-
-    $admin = $st->fetch();
-
-    if ($admin) {
-        $_SESSION['admin_user'] = null;
-        $_SESSION['admin_role'] = null;
+    $token=nexus_oauth_http('https://discord.com/api/oauth2/token',['Content-Type: application/x-www-form-urlencoded'],[
+        'client_id'=>app_config('discord_client_id'),'client_secret'=>app_config('discord_client_secret'),
+        'grant_type'=>'authorization_code','code'=>$code,'redirect_uri'=>$callback,
+    ]);
+    if (empty($token['access_token'])) throw new RuntimeException('Token OAuth no válido.');
+    $user=nexus_oauth_http('https://discord.com/api/v10/users/@me',['Authorization: Bearer '.$token['access_token']]);
+    unset($token);
+    $id=(string)($user['id']??'');
+    if (!preg_match('/^\d{5,25}$/',$id)) throw new RuntimeException('Cuenta de Discord no válida.');
+    $role=discord_member_role_info($id);
+    if (!$role) {
+        unset($_SESSION['member_discord_id'],$_SESSION['member_username'],$_SESSION['member_avatar'],$_SESSION['member_role']);
+        http_response_code(403); exit('Tu cuenta debe pertenecer al servidor de NEXUS y tener el rol de miembro configurado. Consulta a los oficiales en Discord.');
     }
-
-    /*
-     * Buscar miembro.
-     */
-    $st = $pdo->prepare(
-        'SELECT id FROM members WHERE discord_id=? LIMIT 1'
-    );
-
-    $st->execute([$d['id']]);
-
-    $member = $st->fetch();
-
-    if ($member) {
-
-        $pdo->prepare(
-            'UPDATE members
-             SET discord_username=?,
-                 discord_avatar=?,
-                 is_member=1,
-                 member_role_name=?,
-                 verified_at=CURRENT_TIMESTAMP,
-                 updated_at=CURRENT_TIMESTAMP
-             WHERE id=?'
-        )->execute([
-            $username,
-            $avatar,
-            $memberRole['name'],
-            $member['id']
-        ]);
-
-    } else {
-
-        $pdo->prepare(
-            'INSERT INTO members
-             (discord_id, discord_username, discord_avatar, is_member, member_role_name, verified_at)
-             VALUES (?,?,?,?,?,CURRENT_TIMESTAMP)'
-        )->execute([
-            $d['id'],
-            $username,
-            $avatar,
-            1,
-            $memberRole['name']
-        ]);
-    }
+    $username=mb_substr((string)($user['global_name']??$user['username']??'Discord'),0,100);
+    $avatarHash=(string)($user['avatar']??'');
+    $avatar=preg_match('/^(?:a_)?[a-f0-9]+$/',$avatarHash)?'https://cdn.discordapp.com/avatars/'.$id.'/'.$avatarHash.'.png':null;
+    $pdo=db();
+    $pdo->prepare('INSERT INTO members (discord_id,discord_username,discord_avatar,is_member,member_role_name,verified_at) VALUES (?,?,?,1,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE discord_username=VALUES(discord_username),discord_avatar=VALUES(discord_avatar),is_member=1,member_role_name=VALUES(member_role_name),verified_at=CURRENT_TIMESTAMP')->execute([$id,$username,$avatar,$role['name']]);
+    session_regenerate_id(true);
+    $_SESSION['member_discord_id']=$id; $_SESSION['member_username']=$username;
+    $_SESSION['member_avatar']=$avatar; $_SESSION['member_role']=$role['name'];
+    header('Location: '.$returnTo,true,302); exit;
+} catch (Throwable $error) {
+    error_log('NEXUS OAuth: autenticación no completada; '.$error::class);
+    http_response_code(503); exit('No se ha podido completar el acceso con Discord. Inténtalo más tarde o consulta con la administración.');
 }
-
-/* Crear una nueva sesión después de OAuth. */
-session_regenerate_id(true);
-
-$_SESSION['member_discord_id'] = (string)$d['id'];
-$_SESSION['member_username']   = $username;
-$_SESSION['member_avatar']     = $avatar;
-$_SESSION['member_role']       = $memberRole['name'];
-
-/*
- * Volver a la página desde la que inició sesión.
- */
-header('Location: ' . $returnTo, true, 302);
-exit;

@@ -18,51 +18,21 @@ if ($__nexusConfigured && function_exists('db')) {
 <html lang="es">
 
 <head>
-
-    <meta charset="utf-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width,initial-scale=1"
-    >
-
-    <title>Galería de World of Warcraft Forever | NEXUS</title>
-
-    <meta
-        name="description"
-        content="Galería de NEXUS — Veteranos de Azeroth. Capturas, raids, aventuras y momentos compartidos de la comunidad de World of Warcraft Forever."
-    >
-
-    <link
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/galeria'); ?>
+<link
         rel="icon"
         href="./favicon.ico"
     >
-
-    <!-- CSS GLOBAL -->
-    <link
+<link
         rel="stylesheet"
         href="./css/global.css"
     >
-
-    <!-- CSS GALERÍA -->
-    <link
+<link
         rel="stylesheet"
         href="./css/galeria.css?v=10"
     >
-
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://www.nexus-forever.es/galeria.php">
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="es_ES">
-  <meta property="og:title" content="Galería de World of Warcraft Forever | NEXUS">
-  <meta property="og:description" content="Galería de capturas y recuerdos de NEXUS — Veteranos de Azeroth durante nuestras aventuras en World of Warcraft Forever.">
-  <meta property="og:url" content="https://www.nexus-forever.es/galeria.php">
-  <meta property="og:site_name" content="NEXUS — Veteranos de Azeroth">
-  <meta property="og:image" content="https://www.nexus-forever.es/img/galeria/Azeroth01.jpg">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Galería de World of Warcraft Forever | NEXUS">
-  <meta name="twitter:description" content="Galería de capturas y recuerdos de NEXUS — Veteranos de Azeroth durante nuestras aventuras en World of Warcraft Forever.">
-  <meta name="twitter:image" content="https://www.nexus-forever.es/img/galeria/Azeroth01.jpg">
 </head>
 
 

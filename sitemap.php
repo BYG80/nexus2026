@@ -1,11 +1,15 @@
 <?php
-require_once __DIR__ . '/config/bootstrap.php';
+declare(strict_types=1);
+require_once __DIR__ . '/includes/seo.php';
 header('Content-Type: application/xml; charset=UTF-8');
-$base=rtrim((string)app_config('app_url','https://www.nexus-forever.es'),'/');
-$urls=['/','/hermandad-wow-forever','/world-of-warcraft-forever'];
-$urls[] = nexus_faction()==='alianza' ? '/alianza-wow-forever' : '/horda-wow-forever';
-$urls=array_merge($urls,['/roster','/members','/calendario','/rsp','/reclutamiento','/historia','/logros','/galeria','/noticias','/normas','/mazmorras','/aviso-legal','/privacidad','/politica-cookies']);
-$xml="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">";
-foreach($urls as $path){$xml.="\n  <url><loc>".htmlspecialchars($base.$path,ENT_XML1,'UTF-8')."</loc><lastmod>".date('Y-m-d')."</lastmod></url>";}
-$xml.="\n</urlset>\n";
-echo $xml;
+header('Cache-Control: public, max-age=3600');
+echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+foreach (nexus_seo_pages() as $path => $page) {
+    if (!($page['index'] ?? true)) continue;
+    $file = __DIR__ . ($path === '/' ? '/index.php' : $path . '.php');
+    if (!is_file($file)) continue;
+    echo '  <url><loc>' . htmlspecialchars(nexus_canonical($path), ENT_XML1, 'UTF-8') . '</loc>';
+    echo '<lastmod>' . gmdate('Y-m-d', filemtime($file)) . "</lastmod></url>\n";
+}
+echo "</urlset>\n";

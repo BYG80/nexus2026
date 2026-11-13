@@ -6,6 +6,8 @@ start_secure_session();
 if(empty($_SESSION['admin_user'])) json_response(['error'=>'No autorizado'],401);
 if($_SERVER['REQUEST_METHOD']!=='POST') json_response(['error'=>'Método no permitido'],405);
 
+if (!csrf_check($_POST['csrf'] ?? null)) json_response(['error'=>'Recarga la página: token de sesión no válido.'],403);
+$pdo = null;
 $eventId=(int)($_POST['event_id']??0);
 $discordId=trim((string)($_POST['discord_id']??''));
 $attended=(int)($_POST['attended']??0);
@@ -72,14 +74,14 @@ try {
             $roster['id']??null,
             $roster['name']??($attendee['member_username']??null),
             $eventId,
-            -$rule,
+            -$attendanceNet,
             'raid_attendance',
             'Corrección: asistencia anulada',
             'attendance_reversal',
             'attendance_reversal:'.$eventId.':'.$discordId.':'.bin2hex(random_bytes(6)),
             (string)($_SESSION['admin_user']??'admin')
         ]);
-        $awarded=-$rule;
+        $awarded=-$attendanceNet;
     }
 
     $pdo->commit();

@@ -27,9 +27,8 @@ try {
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RSP | NEXUS — Cómo funciona</title>
-<meta name="robots" content="index,follow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/rsp'); ?>
 <link rel="stylesheet" href="./css/global.css">
 <link rel="stylesheet" href="./css/roster.css">
 <link rel="stylesheet" href="./css/rsp.css">

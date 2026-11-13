@@ -8,91 +8,12 @@ start_secure_session();
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
-<title>Calendario de eventos de WoW Forever | NEXUS</title>
-
-<meta name="description" content="Consulta el calendario de eventos de NEXUS en WoW Forever: eventos, mazmorras y actividades de la hermandad.">
-
-<meta name="robots" content="index, follow">
-<meta name="author" content="NEXUS — Veteranos de Azeroth">
-
-<!-- URL canónica -->
-<link rel="canonical" href="https://www.nexus-forever.es/calendario.php">
-
-<!-- Open Graph -->
-<meta property="og:type" content="website">
-<meta property="og:locale" content="es_ES">
-<meta property="og:title" content="Calendario de eventos de WoW Forever | NEXUS">
-<meta property="og:description" content="Consulta el calendario de eventos de NEXUS en WoW Forever: eventos, mazmorras y actividades de la hermandad.">
-<meta property="og:url" content="https://www.nexus-forever.es/calendario.php">
-<meta property="og:site_name" content="NEXUS — Veteranos de Azeroth">
-<meta property="og:image" content="https://www.nexus-forever.es/img/galeria/Azeroth01.jpg">
-<meta property="og:image:alt" content="NEXUS — Veteranos de Azeroth en World of Warcraft Forever">
-
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Calendario de eventos de WoW Forever | NEXUS">
-<meta name="twitter:description" content="Consulta el calendario de eventos de NEXUS en WoW Forever: eventos, mazmorras y actividades de la hermandad.">
-<meta name="twitter:image" content="https://www.nexus-forever.es/img/galeria/Azeroth01.jpg">
-<meta name="twitter:image:alt" content="NEXUS — Veteranos de Azeroth en World of Warcraft Forever">
-
+<meta name="nexus-csrf" content="<?=e(csrf_token())?>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/calendario'); ?>
 <link rel="stylesheet" href="./css/global.css">
 <link rel="stylesheet" href="./css/calendario.css">
 <link rel="icon" type="image/x-icon" href="./favicon.ico">
-
-<!-- =====================================================
-     DATOS ESTRUCTURADOS
-     ===================================================== -->
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  "@id": "https://www.nexus-forever.es/calendario.php#webpage",
-  "url": "https://www.nexus-forever.es/calendario.php",
-  "name": "Calendario de eventos de WoW Forever | NEXUS",
-  "description": "Calendario de eventos de NEXUS en World of Warcraft Forever.",
-  "inLanguage": "es-ES",
-  "isPartOf": {
-    "@type": "WebSite",
-    "@id": "https://www.nexus-forever.es/#website",
-    "url": "https://www.nexus-forever.es/",
-    "name": "NEXUS — Veteranos de Azeroth"
-  },
-  "about": {
-    "@type": "VideoGame",
-    "name": "World of Warcraft"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "NEXUS — Veteranos de Azeroth",
-    "url": "https://www.nexus-forever.es/"
-  }
-}
-</script>
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Inicio",
-      "item": "https://www.nexus-forever.es/"
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Calendario",
-      "item": "https://www.nexus-forever.es/calendario.php"
-    }
-  ]
-}
-</script>
-
 </head>
 
 <body>
@@ -110,8 +31,7 @@ start_secure_session();
 
         <p>
             Consulta y organiza los próximos eventos de NEXUS:
-            raids, mazmorras, eventos y actividades de hermandad
-            y actividades de la hermandad.
+            raids, mazmorras, eventos y actividades de la hermandad.
         </p>
 
     </div>
@@ -293,7 +213,7 @@ start_secure_session();
 </button>
 
 
-<script src="./js/calendario.js?v=20261013-2"></script>
+<script src="./js/calendario.js?v=<?=filemtime(__DIR__ . '/js/calendario.js')?>"></script>
 
 </body>
 </html>

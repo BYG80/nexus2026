@@ -5,45 +5,12 @@ start_secure_session();
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- SEO principal -->
-  <title>Historia de NEXUS | Veteranos de Azeroth — World of Warcraft Forever</title>
-  <meta name="description" content="Conoce la historia, filosofía y objetivos de NEXUS — Veteranos de Azeroth, una comunidad española de World of Warcraft Forever.">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://www.nexus-forever.es/historia.php">
-
-  <!-- Open Graph -->
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="es_ES">
-  <meta property="og:title" content="Historia de NEXUS — Veteranos de Azeroth">
-  <meta property="og:description" content="De los primeros días de Azeroth a una nueva aventura en World of Warcraft Forever. Descubre cómo nace NEXUS.">
-  <meta property="og:url" content="https://www.nexus-forever.es/historia.php">
-  <meta property="og:site_name" content="NEXUS — Veteranos de Azeroth">
-
-  <!-- Twitter / X -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Historia de NEXUS — Veteranos de Azeroth">
-  <meta name="twitter:description" content="Conoce la historia de NEXUS y nuestra nueva aventura en World of Warcraft Forever.">
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="./favicon.ico">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="./css/global.css">
-  <link rel="stylesheet" href="./css/historia.css">
-
-  <!-- Datos estructurados -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "NEXUS — Veteranos de Azeroth",
-    "url": "https://www.nexus-forever.es/",
-    "description": "Comunidad española de jugadores de World of Warcraft Forever."
-  }
-  </script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/historia'); ?>
+<link rel="icon" type="image/x-icon" href="./favicon.ico">
+<link rel="stylesheet" href="./css/global.css">
+<link rel="stylesheet" href="./css/historia.css">
 </head>
 
 <body>

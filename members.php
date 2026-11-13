@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/config/bootstrap.php';
 start_secure_session();
+header('X-Robots-Tag: noindex, follow');
 
 
 
@@ -79,9 +80,8 @@ ksort($classes);
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Miembros | NEXUS — Veteranos de Azeroth</title>
-<meta name="robots" content="index,follow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/members'); ?>
 <link rel="stylesheet" href="./css/global.css">
 <link rel="stylesheet" href="./css/roster.css">
 <link rel="stylesheet" href="./css/members.css">

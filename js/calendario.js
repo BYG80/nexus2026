@@ -93,6 +93,7 @@ const NEXUS_CALENDAR_INIT = async () => {
     ]
   };
 
+  const signupCsrf = document.querySelector('meta[name="nexus-csrf"]')?.content || '';
   const signupEndpoint = '/api/event-signup.php';
   const calendarUrl = '/calendario.php';
   const discordLoginUrl = '/auth/discord.php';
@@ -747,6 +748,7 @@ const NEXUS_CALENDAR_INIT = async () => {
                 `${signupEndpoint}?event_id=${encodeURIComponent(e.id)}`,
                 {
                   method: 'DELETE',
+                  headers: { 'X-CSRF-Token': signupCsrf },
                   cache: 'no-store',
                   credentials: 'same-origin'
                 }
@@ -895,11 +897,6 @@ const NEXUS_CALENDAR_INIT = async () => {
 
           formData.set('character_id', characterSelect.value);
 
-          console.log('NEXUS inscripción - enviando:', {
-            event_id: formData.get('event_id'),
-            character_id: formData.get('character_id')
-          });
-
           /*
            * ==================================================
            * POST
@@ -911,6 +908,7 @@ const NEXUS_CALENDAR_INIT = async () => {
               signupEndpoint,
               {
                 method: 'POST',
+                headers: { 'X-CSRF-Token': signupCsrf },
                 body: formData,
                 cache: 'no-store',
                 credentials: 'same-origin'
@@ -1374,8 +1372,8 @@ const NEXUS_CALENDAR_INIT = async () => {
             'div'
           );
 
-        item.className =
-          'event-item';
+        item.className = 'event-item';
+        item.id = 'evento-' + e.id;
 
         const d =
           new Date(

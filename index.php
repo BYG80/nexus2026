@@ -92,75 +92,22 @@ try {
 <html lang="es">
 
 <head>
-
-    <meta charset="utf-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
-
-    <!-- SEO principal -->
-
-    <?php $seoFaction = nexus_faction_label(); ?>
-    <title><?=e(nexus_seo_title('Hermandad de World of Warcraft Forever'))?></title>
-    <meta name="description" content="<?=e(nexus_seo_description('NEXUS es una hermandad española de '.$seoFaction.' en World of Warcraft Forever. Conoce nuestro roster, eventos, mazmorras, profesiones, RSP y reclutamiento.'))?>">
-    <meta name="robots" content="index, follow, max-image-preview:large">
-    <link rel="canonical" href="<?=e(nexus_canonical('/'))?>">
-
-    <meta property="og:type" content="website">
-    <meta property="og:locale" content="es_ES">
-    <meta property="og:title" content="<?=e(nexus_seo_title('Hermandad de World of Warcraft Forever'))?>">
-    <meta property="og:description" content="<?=e(nexus_seo_description('Hermandad española '.$seoFaction.' de World of Warcraft Forever. Roster, eventos, mazmorras, profesiones, RSP y reclutamiento.'))?>">
-    <meta property="og:url" content="<?=e(nexus_canonical('/'))?>">
-    <meta property="og:site_name" content="NEXUS — Veteranos de Azeroth">
-    <meta property="og:image" content="<?=e(nexus_canonical('/img/galeria/Azeroth01.jpg'))?>">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?=e(nexus_seo_title('Hermandad de World of Warcraft Forever'))?>">
-    <meta name="twitter:description" content="<?=e(nexus_seo_description('NEXUS — hermandad '.$seoFaction.' de World of Warcraft Forever.'))?>">
-    <meta name="twitter:image" content="<?=e(nexus_canonical('/img/galeria/Azeroth01.jpg'))?>">
-
-    <!-- Favicon -->
-
-    <link
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/'); ?>
+<link
         rel="icon"
         type="image/x-icon"
         href="./favicon.ico"
     >
-
-
-    <!-- CSS -->
-
-    <link
+<link
         rel="stylesheet"
         href="./css/global.css"
     >
-
-    <link
+<link
         rel="stylesheet"
         href="./css/index.css?v=<?=filemtime(__DIR__ . '/css/index.css')?>"
     >
-
-
-    <!-- Estilos de las noticias -->
-
-
-
-
-    <!-- Datos estructurados -->
-
-    <script type="application/ld+json">
-<?=nexus_jsonld([
-    '@context'=>'https://schema.org',
-    '@graph'=>[
-        ['@type'=>'WebSite','@id'=>nexus_canonical('/').'#website','url'=>nexus_canonical('/'),'name'=>'NEXUS — Veteranos de Azeroth','description'=>'Hermandad española de World of Warcraft Forever.'],
-        ['@type'=>'Organization','@id'=>nexus_canonical('/').'#organization','name'=>'NEXUS — Veteranos de Azeroth','url'=>nexus_canonical('/'),'description'=>'Hermandad española de '.nexus_faction_label().' en World of Warcraft Forever.'],
-        ['@type'=>'WebPage','@id'=>nexus_canonical('/').'#webpage','url'=>nexus_canonical('/'),'name'=>nexus_seo_title('Hermandad de World of Warcraft Forever'),'isPartOf'=>['@id'=>nexus_canonical('/').'#website']]
-    ]
-])?>
-    </script>
-
 </head>
 
 
@@ -179,7 +126,7 @@ try {
         <div class="container">
 
             <div class="eyebrow">
-                NEXUS · WORLD OF WARCRAFT FOREVER
+                NEXUS · <?=e(nexus_faction_label())?> · WORLD OF WARCRAFT FOREVER
             </div>
 
             <h1>
@@ -261,7 +208,7 @@ try {
 
                     <a
                         class="btn ghost"
-                        href="historia.php"
+                        href="/hermandad-wow-forever"
                     >
                         Conócenos
                     </a>

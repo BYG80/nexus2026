@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/config/bootstrap.php';
 start_secure_session();
+require_once __DIR__ . '/includes/guild-info.php';
+$guildContact=nexus_guild_info();
 
  // Necesario para conservar el token entre la carga del formulario y su envío.
 require_once __DIR__ . '/includes/seo.php';
@@ -53,33 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre_jugador'])) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reclutamiento WoW Forever | Únete a NEXUS</title>
-<meta name="description" content="Solicita entrar en NEXUS — Veteranos de Azeroth. Indica tu personaje, raza, clase, rol, profesiones, experiencia y preferencias de juego.">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.nexus-forever.es/reclutamiento.php">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="es_ES">
-<meta property="og:title" content="Reclutamiento WoW Forever | Únete a NEXUS">
-<meta property="og:description" content="Formulario de reclutamiento de NEXUS para jugadores de World of Warcraft Forever.">
-<meta property="og:url" content="https://www.nexus-forever.es/reclutamiento.php">
-<meta property="og:site_name" content="NEXUS — Veteranos de Azeroth">
-<meta property="og:image" content="https://www.nexus-forever.es/img/galeria/Azeroth01.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Reclutamiento WoW Forever | Únete a NEXUS">
-<meta name="twitter:description" content="Formulario para unirte a NEXUS — Veteranos de Azeroth.">
-<meta name="twitter:image" content="https://www.nexus-forever.es/img/galeria/Azeroth01.jpg">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/reclutamiento'); ?>
 <link rel="stylesheet" href="./css/global.css">
 <link rel="stylesheet" href="./css/reclutamiento.css">
 <link rel="icon" type="image/x-icon" href="./favicon.ico">
-<script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@type":"WebPage",
-  "name":"Reclutamiento NEXUS",
-  "url":"https://www.nexus-forever.es/reclutamiento.php",
-  "description":"Formulario de reclutamiento para NEXUS — Veteranos de Azeroth."
-}
-</script>
 </head>
 <body>
 <?php include __DIR__ . '/includes/public-nav.php'; ?>
@@ -115,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre_jugador'])) {
       <h2>💬 También puedes contactarnos</h2>
       <p>Si prefieres hablar directamente con nosotros, puedes entrar en Discord y presentarte a la comunidad.</p>
       <p class="stat">BattleNet zEoX80#2420</p>
-      <a class="btn primary" href="https://discord.gg/Yq9cQ7E9z" target="_blank" rel="noopener noreferrer">Entrar en Discord</a>
+      <a class="btn primary" href="<?=e($guildContact['discord_invite'])?>" target="_blank" rel="noopener noreferrer">Entrar en Discord</a>
     </div>
   </div>
 

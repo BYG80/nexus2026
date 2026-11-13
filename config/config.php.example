@@ -7,6 +7,12 @@ return [
     'db_charset' => 'utf8mb4',
     'app_url' => 'https://www.nexus-forever.es',
     'app_timezone' => 'Europe/Madrid',
+    'google_site_verification' => '', // Token de verificación de Google Search Console, opcional.
+    'ai_chat_enabled' => true, // Solo responderá si hay clave y PHP cURL.
+    'openai_api_key' => '', // Preferible: variable de entorno OPENAI_API_KEY. No subir una clave real a GitHub.
+    'openai_model' => 'gpt-4.1-mini',
+    'ai_chat_daily_limit' => 100,
+    'ai_chat_ip_hourly_limit' => 30,
     'discord_client_id' => 'TU_CLIENT_ID',
     'discord_client_secret' => 'TU_CLIENT_SECRET',
     'discord_redirect_uri' => 'https://www.nexus-forever.es/auth/discord.php',
@@ -14,6 +20,11 @@ return [
     'discord_guild_id' => 'TU_GUILD_ID',
     'discord_voice_channel_id' => 'TU_CANAL_DE_VOZ',
     'discord_event_channel_id' => 'TU_CANAL_DE_EVENTOS',
+    'discord_gallery_channel_id' => '', // Vacío: usar el canal de eventos.
+    'discord_event_duration_minutes' => 120,
+    'discord_event_location' => 'World of Warcraft Forever — NEXUS',
+    'guild_ingame_name' => 'NexusForever',
+    'armory_guild_slug' => 'nexusforever', // Hermandad del perfil público de Melkir Vossgrave, EU.
     'discord_member_role_name' => 'Miembros',
     'discord_member_role_id' => 'TU_ID_DEL_ROL_MIEMBROS',
     'rsp_discord_channel_id' => 'TU_CANAL_RSP',

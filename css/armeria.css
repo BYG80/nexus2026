@@ -1,0 +1,20 @@
+.armory-selector{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:28px}
+.armory-selector select{flex:1;min-width:0;max-width:420px;padding:12px;border:1px solid #887044;border-radius:6px;background:#10151d;color:#fff;font:inherit}
+.armory-layout{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);align-items:start;gap:24px}
+.armory-summary{text-align:center;position:sticky;top:92px}
+.armory-summary h2{font-size:1.8rem;overflow-wrap:anywhere}
+.armory-portrait-frame{height:300px;overflow:hidden;margin-bottom:18px}.armory-portrait{display:block;width:100%;height:100%;object-fit:cover;transform:scale(1.6);transform-origin:45% 55%}
+.armory-ilvl strong{display:block;font-size:2rem;color:var(--gold2)}
+.armory-equipment{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.armory-item{padding:18px;overflow-wrap:anywhere}
+.armory-item-title{display:flex;align-items:center;gap:12px}
+.armory-item-title img{flex:none;border:1px solid var(--line);border-radius:6px}
+.armory-item .armory-item-title h3{font-size:1rem;margin:4px 0 0}
+.armory-item-title span,.armory-item p,.armory-item ul{font-size:.82rem}
+.armory-item ul{padding-left:18px;color:#ced5df}
+.armory-item .quality-uncommon{color:#67dc5b!important}.armory-item .quality-rare{color:#69afff!important}.armory-item .quality-epic{color:#ca94ff!important}.armory-item .quality-legendary,.armory-item .quality-artifact{color:#ffbc68!important}
+.armory-enchant{color:#8cdb9d}
+.armory-source{margin-top:28px;font-size:.8rem}
+@media(max-width:900px){.armory-layout{grid-template-columns:1fr}.armory-summary{position:static}.armory-portrait-frame{height:260px;max-width:300px;margin-inline:auto}}
+@media(max-width:600px){.armory-equipment{grid-template-columns:1fr}.armory-selector label{flex-basis:100%}.armory-selector select{width:100%}.armory-item{padding:16px}}
+.armory-members{margin-bottom:28px}.armory-member-list{display:flex;flex-wrap:wrap;gap:6px}.armory-members p{font-size:.85rem}

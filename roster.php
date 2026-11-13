@@ -53,8 +53,14 @@ $active=array_values(array_filter($rows,fn($r)=>($r['status']??'active')==='acti
 $inactive=array_values(array_filter($rows,fn($r)=>($r['status']??'active')!=='active'));
 $classes=[]; foreach($active as $r){$classes[$r['class_name']?:'Sin clase']=($classes[$r['class_name']?:'Sin clase']??0)+1;} ksort($classes);
 ?>
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Roster | NEXUS — Veteranos de Azeroth</title><meta name="description" content="Roster de la hermandad NEXUS en World of Warcraft Forever."><link rel="canonical" href="https://www.nexus-forever.es/roster.php"><link rel="stylesheet" href="./css/global.css"><link rel="stylesheet" href="./css/roster.css"><link rel="icon" href="./favicon.ico"></head><body>
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/roster'); ?>
+<link rel="stylesheet" href="./css/global.css">
+<link rel="stylesheet" href="./css/roster.css">
+<link rel="icon" href="./favicon.ico">
+</head><body>
 <?php include __DIR__.'/includes/public-nav.php'; ?>
 <header class="page-hero"><div class="container"><div class="eyebrow">NEXUS · HERMANDAD · <?=e(mb_strtoupper(nexus_faction_label(),'UTF-8'))?></div><h1>Roster de NEXUS</h1><p>Los héroes que forman nuestra hermandad. Descubre quiénes somos, qué clase jugamos y qué papel desempeñamos en Azeroth.</p></div></header>
 <main class="roster-page"><section><div class="container">

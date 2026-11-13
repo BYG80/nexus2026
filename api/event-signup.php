@@ -124,6 +124,10 @@ try {
     }
 
 
+    if ($method !== 'GET' && !csrf_check($_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf'] ?? null)) {
+        event_signup_json(['error' => 'Recarga la página: token de sesión no válido.'], 403);
+    }
+
     /*
      * ========================================================
      * ID DEL EVENTO
@@ -362,7 +366,8 @@ try {
                 character_id,
                 race,
                 class_name,
-                `role`
+                `role`,
+                registered_via_web
              FROM event_attendees
              WHERE event_id = ?
                AND member_discord_id = ?
@@ -394,7 +399,7 @@ try {
 
         event_signup_json([
             'registered' =>
-                (bool)$registration,
+                $registration && (int)$registration['registered_via_web'] === 1,
 
             'count' =>
                 $count,
@@ -746,8 +751,7 @@ $allowedClasses = nexus_wow_classes();
                 );
 
                 $discordSync['ok'] = true;
-                try { $pdo->prepare('UPDATE events SET discord_sync_error = NULL WHERE id = ?')->execute([$eventId]); } catch (Throwable $ignore) {}
-                try { $pdo->prepare('UPDATE events SET discord_sync_error = NULL WHERE id = ?')->execute([$eventId]); } catch (Throwable $ignore) {}
+
 
             } elseif (function_exists(
                 'sync_discord_event'
@@ -822,18 +826,9 @@ $allowedClasses = nexus_wow_classes();
      */
 
     if ($method === 'DELETE') {
-
-        $delete = $pdo->prepare(
-            'DELETE FROM event_attendees
-             WHERE event_id = ?
-               AND member_discord_id = ?'
-        );
-
-        $delete->execute([
-            $eventId,
-            $discordId
-        ]);
-
+        // Retirar la inscripción web no retira el interés ni la asistencia registrada en Discord.
+        $pdo->prepare('UPDATE event_attendees SET registered_via_web=0 WHERE event_id=? AND member_discord_id=?')->execute([$eventId,$discordId]);
+        $pdo->prepare('DELETE FROM event_attendees WHERE event_id=? AND member_discord_id=? AND discord_interested=0 AND attended IS NULL')->execute([$eventId,$discordId]);
 
         /*
          * ====================================================
@@ -939,15 +934,6 @@ $allowedClasses = nexus_wow_classes();
 
 
 } catch (Throwable $e) {
-
-    event_signup_json([
-        'error' =>
-            'Error interno: ' . $e->getMessage(),
-
-        'file' =>
-            basename($e->getFile()),
-
-        'line' =>
-            $e->getLine()
-    ], 500);
+    error_log('NEXUS inscripción: error interno al procesar la solicitud.');
+    event_signup_json(['error' => 'No se pudo completar la inscripción. Inténtalo de nuevo.'], 500);
 }

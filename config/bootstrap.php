@@ -41,6 +41,12 @@ function app_config(string $key, $default = null)
 }
 
 
+function app_timezone(): DateTimeZone
+{
+    try { return new DateTimeZone((string)app_config('app_timezone', 'Europe/Madrid')); }
+    catch (Exception $error) { return new DateTimeZone('Europe/Madrid'); }
+}
+
 /*
 |--------------------------------------------------------------------------
 | ESCAPAR HTML
@@ -890,260 +896,15 @@ function nexus_event_description(array $event): string
 |--------------------------------------------------------------------------
 */
 
-function discord_api(
-    string $method,
-    string $url,
-    ?array $payload = null,
-    ?string $token = null
-): array {
-
-    $token =
-        $token ??
-        trim(
-            (string)app_config(
-                'discord_bot_token',
-                ''
-            )
-        );
-
-    if ($token === '') {
-
-        throw new RuntimeException(
-            'El token del bot de Discord no está configurado.'
-        );
-    }
-
-    $ch = curl_init();
-
-    if ($ch === false) {
-
-        throw new RuntimeException(
-            'No se pudo inicializar cURL.'
-        );
-    }
-
-    $headers = [
-        'Authorization: Bot ' . $token,
-        'User-Agent: NEXUS-World-of-Warcraft-Forever/1.0',
-        'Accept: application/json'
-    ];
-
-    $options = [
-        CURLOPT_URL =>
-            $url,
-
-        CURLOPT_RETURNTRANSFER =>
-            true,
-
-        CURLOPT_CUSTOMREQUEST =>
-            strtoupper($method),
-
-        CURLOPT_HTTPHEADER =>
-            $headers,
-
-        CURLOPT_CONNECTTIMEOUT =>
-            10,
-
-        CURLOPT_TIMEOUT =>
-            30,
-
-        CURLOPT_FOLLOWLOCATION =>
-            false
-    ];
-
-    if ($payload !== null) {
-
-        $headers[] =
-            'Content-Type: application/json';
-
-        $options[CURLOPT_HTTPHEADER] =
-            $headers;
-
-        $json =
-            json_encode(
-                $payload,
-                JSON_UNESCAPED_UNICODE |
-                JSON_UNESCAPED_SLASHES
-            );
-
-        if ($json === false) {
-
-            curl_close($ch);
-
-            throw new RuntimeException(
-                'No se pudo generar el JSON para Discord.'
-            );
-        }
-
-        $options[CURLOPT_POSTFIELDS] =
-            $json;
-    }
-
-    curl_setopt_array(
-        $ch,
-        $options
-    );
-
-    $response =
-        curl_exec($ch);
-
-    $curlError =
-        curl_error($ch);
-
-    $curlErrno =
-        curl_errno($ch);
-
-    $status =
-        (int)curl_getinfo(
-            $ch,
-            CURLINFO_HTTP_CODE
-        );
-
-    curl_close($ch);
-
-    if ($response === false) {
-
-        throw new RuntimeException(
-            'Error cURL de Discord (' .
-            $curlErrno .
-            '): ' .
-            $curlError
-        );
-    }
-
-    $decoded =
-        json_decode(
-            (string)$response,
-            true
-        );
-
-    if (
-        $status < 200 ||
-        $status >= 300
-    ) {
-
-        $message =
-            is_array($decoded)
-                ? (
-                    $decoded['message']
-                    ?? json_encode(
-                        $decoded,
-                        JSON_UNESCAPED_UNICODE
-                    )
-                )
-                : (string)$response;
-
-        throw new RuntimeException(
-            'Discord API HTTP ' .
-            $status .
-            ': ' .
-            $message
-        );
-    }
-
-    return is_array($decoded)
-        ? $decoded
-        : [];
+function discord_api(string $method, string $url, ?array $payload = null, ?string $token = null): array
+{
+    return nexus_discord_request($method, $url, $payload, $token);
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| CREAR EVENTO PROGRAMADO EN DISCORD
-|--------------------------------------------------------------------------
-*/
-
-function discord_create_event(
-    array $event
-): array {
-
-    $guildId =
-        trim(
-            (string)app_config(
-                'discord_guild_id',
-                ''
-            )
-        );
-
-    $voiceChannelId =
-        trim(
-            (string)app_config(
-                'discord_voice_channel_id',
-                ''
-            )
-        );
-
-    if ($guildId === '') {
-
-        throw new RuntimeException(
-            'No está configurado discord_guild_id.'
-        );
-    }
-
-    if ($voiceChannelId === '') {
-
-        throw new RuntimeException(
-            'No está configurado discord_voice_channel_id.'
-        );
-    }
-
-    $title =
-        nexus_event_title($event);
-
-    $description =
-        nexus_event_description($event);
-
-    $start =
-        event_start_utc($event);
-
-    $end =
-        $start->modify('+2 hours');
-
-    $payload = [
-
-        'name' =>
-            mb_substr(
-                $title,
-                0,
-                100
-            ),
-
-        'description' =>
-            mb_substr(
-                $description,
-                0,
-                1000
-            ),
-
-        'scheduled_start_time' =>
-            $start->format(
-                'Y-m-d\TH:i:s\Z'
-            ),
-
-        'scheduled_end_time' =>
-            $end->format(
-                'Y-m-d\TH:i:s\Z'
-            ),
-
-        'privacy_level' =>
-            2,
-
-        'entity_type' =>
-            2,
-
-        'channel_id' =>
-            $voiceChannelId
-    ];
-
-    return discord_api(
-        'POST',
-        'https://discord.com/api/v10/guilds/' .
-        rawurlencode($guildId) .
-        '/scheduled-events',
-        $payload
-    );
+function discord_create_event(array $event): array
+{
+    return discord_api('POST', nexus_discord_guild_url() . '/scheduled-events', nexus_discord_event_payload($event));
 }
-
 
 /*
 |--------------------------------------------------------------------------
@@ -1151,28 +912,25 @@ function discord_create_event(
 |--------------------------------------------------------------------------
 */
 
-function discord_list_event_users(
-    string $guildId,
-    string $eventId
-): array {
-
-    if (
-        $guildId === '' ||
-        $eventId === ''
-    ) {
-        return [];
+function discord_list_event_users(string $guildId, string $eventId, ?callable $api = null): array
+{
+    if ($guildId === '' || $eventId === '') return [];
+    $api ??= 'discord_api';
+    $users = [];
+    $after = null;
+    for ($page = 0; $page < 20; $page++) {
+        $url = 'https://discord.com/api/v10/guilds/' . rawurlencode($guildId) . '/scheduled-events/' . rawurlencode($eventId) . '/users?limit=100';
+        if ($after !== null) $url .= '&after=' . rawurlencode($after);
+        $batch = $api('GET', $url);
+        foreach ($batch as $item) $users[] = $item;
+        if (count($batch) < 100) return $users;
+        $last = end($batch);
+        $next = (string)($last['user']['id'] ?? '');
+        if ($next === '' || $next === $after) throw new NexusDiscordException('No se pudo completar la lista de interesados en Discord.');
+        $after = $next;
     }
-
-    return discord_api(
-        'GET',
-        'https://discord.com/api/v10/guilds/' .
-        rawurlencode($guildId) .
-        '/scheduled-events/' .
-        rawurlencode($eventId) .
-        '/users?limit=100'
-    );
+    throw new NexusDiscordException('El evento supera el límite de participantes que se puede sincronizar en una petición.');
 }
-
 
 /*
 |--------------------------------------------------------------------------
@@ -1274,19 +1032,14 @@ function discord_guild_roles(): array
 
 function discord_member_role_info(string $discordId): ?array
 {
-    $member=discord_guild_member($discordId);
-    if(!$member) return null;
-    $roleId=trim((string)app_config('discord_member_role_id',''));
-    $roleName=mb_strtolower(trim((string)app_config('discord_member_role_name','Miembros')),'UTF-8');
-    $roleNames=[];
-    foreach(discord_guild_roles() as $role){
-        if(is_array($role) && isset($role['id'],$role['name'])) $roleNames[(string)$role['id']]=(string)$role['name'];
-    }
-    foreach(($member['roles']??[]) as $rid){
-        $rid=(string)$rid;
-        if($roleId!=='' && hash_equals($roleId,$rid)) return ['id'=>$rid,'name'=>$roleNames[$rid]??$roleName];
-        $name=mb_strtolower((string)($roleNames[$rid]??''),'UTF-8');
-        if($name!=='' && $name===$roleName) return ['id'=>$rid,'name'=>$roleNames[$rid]];
+    $member = discord_guild_member($discordId);
+    if (!$member) return null;
+    $roleId = trim((string)app_config('discord_member_role_id', ''));
+    $roleName = trim((string)app_config('discord_member_role_name', 'Miembros'));
+    $memberRoles = array_map('strval', $member['roles'] ?? []);
+    if ($roleId !== '') return in_array($roleId, $memberRoles, true) ? ['id' => $roleId, 'name' => $roleName] : null;
+    foreach (discord_guild_roles() as $role) {
+        if (isset($role['id'], $role['name']) && in_array((string)$role['id'], $memberRoles, true) && mb_strtolower((string)$role['name']) === mb_strtolower($roleName)) return ['id' => (string)$role['id'], 'name' => (string)$role['name']];
     }
     return null;
 }
@@ -1300,10 +1053,15 @@ function require_discord_member(): array
 {
     start_secure_session();
     $id=trim((string)($_SESSION['member_discord_id']??''));
-    if($id===''){ header('Location: /auth/discord.php?return_to=/panel.php'); exit; }
+    if($id===''){
+        if(str_starts_with((string)($_SERVER['REQUEST_URI']??''),'/api/')) json_response(['error'=>'Debes iniciar sesión con Discord.'],401);
+        header('Location: /auth/discord.php?return_to=/panel'); exit;
+    }
     $info=discord_member_role_info($id);
     if(!$info){
-        session_unset();
+        unset($_SESSION['member_discord_id'], $_SESSION['member_username'], $_SESSION['member_avatar'], $_SESSION['member_role']);
+        try { db()->prepare('UPDATE members SET is_member=0 WHERE discord_id=?')->execute([$id]); } catch (Throwable $ignore) {}
+        if(str_starts_with((string)($_SERVER['REQUEST_URI']??''),'/api/')) json_response(['error'=>'Necesitas el rol de miembro de NEXUS.'],403);
         http_response_code(403);
         exit('Necesitas pertenecer al servidor de Discord y tener el rol Miembros para acceder al panel.');
     }
@@ -1340,7 +1098,7 @@ function rsp_publish_discord_award(PDO $pdo,int $eventId,string $eventTitle,stri
     foreach(array_chunk($fields,25) as $i=>$chunk){
         $embeds[]=['title'=>'RSP · '.mb_substr($eventTitle,0,200),'description'=>'**'.mb_substr($label,0,200).'** · '.($amount>=0?'+':'').$amount.' RSP por participante','color'=>0xD8AD55,'fields'=>$chunk,'footer'=>['text'=>'NEXUS · World of Warcraft Forever · '.nexus_faction_label()]];
     }
-    foreach(array_chunk($embeds,10) as $chunkIndex=>$embedChunk){
+    foreach(array_chunk($embeds,1) as $chunkIndex=>$embedChunk){
         discord_send_channel_message($channel,['content'=>$chunkIndex===0?'📋 **RSP registrado**':'📋 **RSP — continuación**','embeds'=>$embedChunk]);
     }
 }
@@ -1441,7 +1199,7 @@ function sync_rsp_ranking_to_discord(PDO $pdo): array
                 $newIds[] = trim((string)($message['id'] ?? $oldId));
                 $updated++;
                 continue;
-            } catch (Throwable $e) { /* Si ya no existe, crear uno nuevo. */ }
+            } catch (NexusDiscordException $e) { if ($e->httpStatus !== 404) throw $e; }
         }
         $message = discord_send_channel_message($channelId, $payload);
         $messageId = trim((string)($message['id'] ?? ''));
@@ -1460,7 +1218,7 @@ function sync_rsp_ranking_to_discord(PDO $pdo): array
 
 function member_orders_discord_channel_id(): string
 {
-    return trim((string)app_config('discord_order_channel_id', '1337705144359325768'));
+    return trim((string)app_config('discord_order_channel_id', ''));
 }
 
 function publish_member_order_to_discord(PDO $pdo, int $orderId): string
@@ -1512,7 +1270,7 @@ function publish_member_order_to_discord(PDO $pdo, int $orderId): string
             $newId=trim((string)($edited['id']??$old));
             $pdo->prepare('UPDATE member_orders SET discord_message_id=? WHERE id=?')->execute([$newId,$orderId]);
             return $newId;
-        } catch(Throwable $e) {}
+        } catch(NexusDiscordException $e) { if ($e->httpStatus !== 404) throw $e; }
     }
     $created=discord_send_channel_message($channelId,$payload);
     $newId=trim((string)($created['id']??''));
@@ -1543,8 +1301,8 @@ function close_member_order_row(PDO $pdo, int $orderId, array $row, string $acto
 {
     $messageId=trim((string)($row['discord_message_id']??''));
     if($messageId!=='') {
-        try { discord_delete_channel_message(member_orders_discord_channel_id(),$messageId); } catch(Throwable $e) {
-            throw new RuntimeException('El pedido no se cerró porque Discord no pudo retirar su mensaje: '.$e->getMessage());
+        try { discord_delete_channel_message(member_orders_discord_channel_id(),$messageId); } catch(NexusDiscordException $e) {
+            if ($e->httpStatus !== 404) throw new RuntimeException('El pedido no se cerró porque Discord no pudo retirar su mensaje: '.$e->getMessage());
         }
     }
     $pdo->prepare("UPDATE member_orders SET status='closed',updated_at=CURRENT_TIMESTAMP WHERE id=? AND status='active'")->execute([$orderId]);
@@ -1552,7 +1310,7 @@ function close_member_order_row(PDO $pdo, int $orderId, array $row, string $acto
 
 function profession_discord_channel_id(): string
 {
-    return trim((string)app_config('discord_profession_channel_id', '1332233411422847037'));
+    return trim((string)app_config('discord_profession_channel_id', ''));
 }
 
 function profession_discord_payload(PDO $pdo): array
@@ -1765,9 +1523,7 @@ function sync_professions_to_discord(PDO $pdo): array
                 $newIds[] = trim((string)($edited['id'] ?? $existingId));
                 $updated++;
                 continue;
-            } catch (Throwable $e) {
-                /* Mensaje borrado o inaccesible: se crea de nuevo. */
-            }
+            } catch (NexusDiscordException $e) { if ($e->httpStatus !== 404) throw $e; }
         }
 
         $createdMessage = discord_send_channel_message($channelId, $messagePayload);
@@ -2435,10 +2191,17 @@ function build_discord_event_message(
 |--------------------------------------------------------------------------
 */
 
-function sync_web_event_to_discord(
+function sync_web_event_to_discord(PDO $pdo, int $eventId, ?callable $api = null): array
+{
+    return nexus_discord_lock($pdo, 'event-message:' . $eventId, fn() => nexus_sync_event_message_unlocked($pdo, $eventId, $api));
+}
+
+function nexus_sync_event_message_unlocked(
     PDO $pdo,
-    int $eventId
+    int $eventId,
+    ?callable $api = null
 ): array {
+    $api ??= 'discord_api';
 
     if ($eventId < 1) {
 
@@ -2478,7 +2241,7 @@ function sync_web_event_to_discord(
         trim(
             (string)app_config(
                 'discord_event_channel_id',
-                '1333513673876176947'
+                ''
             )
         );
 
@@ -2511,11 +2274,7 @@ function sync_web_event_to_discord(
         try {
 
             $message =
-                discord_edit_channel_message(
-                    $channelId,
-                    $messageId,
-                    $payload
-                );
+                $api('PATCH', 'https://discord.com/api/v10/channels/' . rawurlencode($channelId) . '/messages/' . rawurlencode($messageId), $payload);
 
 
             try {
@@ -2553,21 +2312,14 @@ function sync_web_event_to_discord(
                     $channelId
             ];
 
-        } catch (Throwable $e) {
-
-            /*
-             * Si el mensaje fue borrado,
-             * se crea uno nuevo.
-             */
+        } catch (NexusDiscordException $e) {
+            if ($e->httpStatus !== 404) throw $e;
         }
     }
 
 
     $message =
-        discord_send_channel_message(
-            $channelId,
-            $payload
-        );
+        $api('POST', 'https://discord.com/api/v10/channels/' . rawurlencode($channelId) . '/messages', $payload);
 
 
     $newMessageId =
@@ -2630,8 +2382,10 @@ function sync_web_event_to_discord(
 function sync_discord_event(
     PDO $pdo,
     int $eventId,
-    bool $force = false
+    bool $force = false,
+    ?callable $api = null
 ): array {
+    $api ??= 'discord_api';
 
     if ($eventId < 1) {
 
@@ -2664,65 +2418,8 @@ function sync_discord_event(
     }
 
 
-    $discordEventId =
-        trim(
-            (string)(
-                $event['discord_event_id']
-                ?? ''
-            )
-        );
-
-
-    if ($discordEventId === '') {
-
-        $created =
-            discord_create_event(
-                $event
-            );
-
-        $discordEventId =
-            trim(
-                (string)(
-                    $created['id']
-                    ?? ''
-                )
-            );
-
-
-        if ($discordEventId === '') {
-
-            throw new RuntimeException(
-                'Discord no devolvió el ID del evento programado.'
-            );
-        }
-
-
-        try {
-
-            if (
-                nexus_column_exists(
-                    $pdo,
-                    'events',
-                    'discord_event_id'
-                )
-            ) {
-
-                $stmt =
-                    $pdo->prepare(
-                        'UPDATE events
-                         SET discord_event_id = ?
-                         WHERE id = ?'
-                    );
-
-                $stmt->execute([
-                    $discordEventId,
-                    $eventId
-                ]);
-            }
-
-        } catch (Throwable $ignore) {}
-    }
-
+    $discordEventId = trim((string)($event['discord_event_id'] ?? ''));
+    if ($discordEventId === '') $discordEventId = nexus_sync_scheduled_event($pdo, $eventId, $api)['discord_event_id'];
 
     $guildId =
         trim(
@@ -2744,11 +2441,15 @@ function sync_discord_event(
     $users =
         discord_list_event_users(
             $guildId,
-            $discordEventId
+            $discordEventId,
+            $api
         );
 
 
     $imported = 0;
+    $pdo->beginTransaction();
+    try {
+    $pdo->prepare('UPDATE event_attendees SET discord_interested=0 WHERE event_id=?')->execute([$eventId]);
 
 
     foreach ($users as $user) {
@@ -2852,9 +2553,10 @@ function sync_discord_event(
                         event_id,
                         member_discord_id,
                         member_username,
-                        registered_via_web
+                        registered_via_web,
+                        discord_interested
                     )
-                    VALUES (?, ?, ?, 0)'
+                    VALUES (?, ?, ?, 0, 1)'
                 );
 
             $stmt->execute([
@@ -2869,6 +2571,14 @@ function sync_discord_event(
     }
 
 
+    $pdo->prepare('DELETE FROM event_attendees WHERE event_id=? AND registered_via_web=0 AND discord_interested=0 AND attended IS NULL')->execute([$eventId]);
+    $pdo->prepare('UPDATE events SET discord_last_synced_at=NOW() WHERE id=?')->execute([$eventId]);
+    $pdo->commit();
+    } catch (Throwable $error) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $error;
+    }
+
     $messageSync = null;
 
 
@@ -2877,7 +2587,8 @@ function sync_discord_event(
         $messageSync =
             sync_web_event_to_discord(
                 $pdo,
-                $eventId
+                $eventId,
+                $api
             );
 
     } catch (Throwable $e) {
@@ -2932,3 +2643,4 @@ function sync_discord_event(
             $messageSync
     ];
 }
+require_once __DIR__ . '/../includes/discord-integration.php';

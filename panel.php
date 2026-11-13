@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/config/bootstrap.php';
 start_secure_session();
+header('X-Robots-Tag: noindex, follow');
 
 require_once __DIR__.'/config/bootstrap.php';
 
@@ -282,7 +283,14 @@ function sec_skill(array $arr,string $name): string { return e((string)($arr[$na
 function sec_checked(array $arr,string $name): string { return isset($arr[$name]) ? 'checked' : ''; }
 function member_class_icon(string $class): string { $c=mb_strtolower($class,'UTF-8'); return ['guerrero'=>'⚔','cazador'=>'➹','pícaro'=>'☠','picaro'=>'☠','sacerdote'=>'✚','chamán'=>'⚡','chaman'=>'⚡','mago'=>'❄','brujo'=>'☄','druida'=>'☘','paladín'=>'✦','paladin'=>'✦'][$c]??'✦'; }
 ?>
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mi panel | NEXUS</title><meta name="robots" content="noindex,nofollow"><link rel="stylesheet" href="./css/global.css"><link rel="stylesheet" href="./css/panel.css?v=20261011c"><link rel="icon" href="./favicon.ico"></head><body>
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php require_once __DIR__ . '/includes/seo.php'; nexus_render_seo('/panel'); ?>
+<link rel="stylesheet" href="./css/global.css">
+<link rel="stylesheet" href="./css/panel.css?v=20261011c">
+<link rel="icon" href="./favicon.ico">
+</head><body>
 <?php include __DIR__.'/includes/public-nav.php'; ?>
 <main><section><div class="container">
 <div class="page-hero"><div class="eyebrow">NEXUS · PANEL DE MIEMBRO</div><h1>Mi panel</h1><p>Gestiona tus personajes, profesiones y pedidos. Puedes registrar varios personajes de tu cuenta de Discord.</p></div>

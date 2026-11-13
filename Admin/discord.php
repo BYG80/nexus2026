@@ -6,7 +6,7 @@ require_once __DIR__ . '/_common.php';
 require_admin();
 
 $pdo = db();
-$channelId = trim((string)app_config('discord_admin_channel_id', '1549516776512036994'));
+$channelId = trim((string)app_config('discord_admin_channel_id', ''));
 $flash = '';
 $error = '';
 

@@ -1,4 +1,6 @@
-# NEXUS — revisión del proyecto
+# NEXUS — revisión inicial del proyecto
+
+Para la ampliación posterior de SEO, chat, Discord y armería, consulta `LEEME_SEO_IA_DISCORD.md`; sus instrucciones de actualización y tablas adicionales completan las de esta revisión inicial.
 
 ## Cambios
 

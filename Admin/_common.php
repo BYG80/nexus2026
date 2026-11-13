@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../config/bootstrap.php';
 
 start_secure_session();
+header('X-Robots-Tag: noindex, nofollow');
 
 /**
  * Escapado HTML seguro.
@@ -69,6 +70,7 @@ function admin_header(
         >
 
         <title><?= e($title) ?> | NEXUS Admin</title>
+        <meta name="robots" content="noindex, nofollow">
 
         <link
             rel="stylesheet"
@@ -170,6 +172,9 @@ function admin_header(
                 <a class="<?= $active === 'recruitment' ? 'active' : '' ?>" href="/Admin/recruitment.php">Solicitudes</a>
 
                 <?php if ($sessionRole === 'admin'): ?>
+                    <a class="<?= $active === 'chat' ? 'active' : '' ?>" href="/Admin/chat.php">Asistente IA</a>
+                    <a class="<?= $active === 'armory' ? 'active' : '' ?>" href="/Admin/armeria.php">Armería</a>
+                    <a class="<?= $active === 'integrations' ? 'active' : '' ?>" href="/Admin/integraciones.php">Integraciones Discord</a>
                     <a class="<?= $active === 'faction' ? 'active' : '' ?>" href="/Admin/faccion.php">
                         Facción
                     </a>
