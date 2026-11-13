@@ -13,3 +13,10 @@ vendor/
 *.log
 .DS_Store
 Thumbs.db
+
+# Nuevas subidas del alojamiento; las imágenes originales ya versionadas se conservan.
+/img/uploads/*
+!/img/uploads/.htaccess
+!/img/uploads/achievements/
+/img/uploads/achievements/*
+!/img/uploads/achievements/.htaccess
